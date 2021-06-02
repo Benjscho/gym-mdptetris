@@ -96,11 +96,11 @@ class Piece():
 
 
 class Board():
-    def __init__(self, width, height, nb_pieces, pieces):
+    def __init__(self, width=10, height=20, nb_pieces=7, allow_lines_after_overflow=False):
         if width > 14 or width < 5: raise ValueError(f"Width must be between 5 and 14, value given: {width}")
         self.width = width
         self.height = height
-        self.pieces = pieces
+        self.allow_lines_after_overflow = allow_lines_after_overflow
         
         self.full_row = 0xFFFF
         self.empty_row = brick_masks[0] | brick_masks[width+1]
@@ -121,11 +121,53 @@ class Board():
         self.board = np.array([self.empty_row]*self.extended_height, np.uint16)
         self.wall_height = 0
     
-    def drop_piece(self, piece, action, cancellable):
+    def drop_piece(self, oriented_piece, column, cancellable):
         if cancellable:
             self.backup_board = self.board
             self.previous_wall_height = self.wall_height
 
+        piece_height = oriented_piece.height
+        destination = self.wall_height
+        removed_lines = 0 
+
+        collision = 0
+        while destination >= 0 and not collision:
+            current_row = destination
+            i = 0 
+            while i < piece_height and not collision:
+                collision = self.board[current_row] & (oriented_piece.shape[i] >> column)
+                i += 1
+                current_row += 1
+            if not collision:
+                destination -= 1
+        destination += 1
+
+        destination_top = destination + piece_height
+
+        wall_height = max(self.wall_height, destination_top)
+
+        for i in range(piece_height):
+            self.board[destination + i] |= oriented_piece.shape[i] >> column
+
+        if destination_top <= self.height or self.allow_lines_after_overflow:
+            i = 0
+            i_stop = piece_height
+
+            while i < i_stop:
+                current_row = destination + i
+                if self.board[current_row] == self.full_row:
+                    j = current_row
+                    while j < wall_height -1 and self.board[j] != self.empty_row:
+                        self.board[j] = self.board[j+1]
+                        j += 1
+                    self.board[j] = self.empty_row
+                    wall_height -= 1
+                    removed_lines += 1
+                    i_stop -= 1
+                else:
+                    i += 1
+        self.wall_height = wall_height
+        return removed_lines
 
     def cancel_last_move(self):
         pass
@@ -151,3 +193,4 @@ class Board():
                 else:
                     print(".",end="")
             print("|")
+        print("")
