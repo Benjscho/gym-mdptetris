@@ -38,17 +38,37 @@ brick_masks_inv = np.array([
   0x0001  # XXXXXXXXXXXXXXX. */
 ], np.uint16)
 
-class PieceOrientation():
-    def __init__(self, height, width, shape, nb_full_cells):
+
+S = """
+XX
+XX
+"""
+
+L = """
+X
+X
+XX
+"""
+class Piece():
+    def __init__(self, nb_orientations, height, width, shape):
+        self.nb_orientations = nb_orientations
         self.height = height
         self.width = width
-        
+        self.orientations = []
+        piece = np.array([0]*height, np.uint16)
+        i, j = 0, 0
+        for c in shape.strip():
+            if c == "X":
+                piece[i] |= brick_masks[j]
+                j += 1
+            elif c == "\n":
+                i += 1
+                j = 0
+            else:
+                j += 1
+        self.orientations.append(piece)
 
-
-class Piece():
-    def __init__(self, nb_orientations, orientations):
-        self.nb_orientations
-        self.orientations = orientations
+            
         
 
 
