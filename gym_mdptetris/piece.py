@@ -175,22 +175,24 @@ class Board():
     def get_column_height(self, column):
         pass
 
-    def print_board(self):
+    def __str__(self):
+        s = ""
         for i in range(self.wall_height, self.height - 1, -1):
-            print(" ", end="")
+            s += " "
             for j in range(1, self.width +1):
                 if self.board[i] & brick_masks[j]:
-                    print("X",end="")
+                    s += "X"
                 else:
-                    print(" ",end="")
-            print("")
+                    s += " "
+            s += "\n"
         
         for i in range(self.height - 1, -1, -1):
-            print("|", end="")
+            s += "|"
             for j in range(1, self.width+1):
                 if self.board[i] & brick_masks[j]:
-                    print("X", end="")
+                    s += "X"
                 else:
-                    print(".",end="")
-            print("|")
-        print("")
+                    s += "."
+            s += "|\n"
+        s += "\n"
+        return s
