@@ -1,5 +1,6 @@
 import unittest
 import piece
+import board
 import env0
 
 S = """
@@ -18,7 +19,7 @@ if __name__=="__main__":
     for o in p.orientations:
         print(o)
 
-    board = piece.Board()
+    board = board.Board()
     print(board)
     board.drop_piece(p.orientations[2], 1, False)
     print(board)
@@ -34,6 +35,6 @@ if __name__=="__main__":
     #print(p)
 
     env = env0.Tetris0()
-    pieces = env.load_pieces('data/pieces_melax.dat')
+    pieces, nb_pieces = env.load_pieces('data/pieces_melax.dat')
     for piece in pieces:
         print(piece)
