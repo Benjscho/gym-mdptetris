@@ -23,16 +23,19 @@ class Tetris0(Env):
         pieces = [] 
         
         lines = f.readlines()
-        for line in lines:
-            if line[0] == '#':
-                lines.remove(line)
-        nb_pieces = int(line[0])
+        i = 0
+        while i < len(lines):
+            if lines[i][0] == '#':
+                del lines[i]
+            else:
+                i += 1 
+        nb_pieces = int(lines[0])
 
         curr_line = 1 
         for i in range(nb_pieces):
-            nb_orientations, height, width = map(int, lines[curr_line])
+            nb_orientations, height, width = map(int, lines[curr_line].split())
             shape = ""
-            for j in range(curr_line + 1, curr_line + height):
+            for j in range(curr_line + 1, curr_line + height + 1):
                 shape += lines[j]
             pieces.append(piece.Piece(nb_orientations, height, width, shape))
             curr_line += 1 + height 

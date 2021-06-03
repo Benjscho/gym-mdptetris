@@ -66,7 +66,7 @@ class Piece():
         piece = np.array([0]*height, np.uint16)
         nb_full_cells_on_rows = [0]*height
         i, j = 0, 0
-        for c in shape.strip():
+        for c in shape.strip("\n"):
             if c == "X":
                 piece[i] |= brick_masks[j]
                 nb_full_cells_on_rows[i] += 1
