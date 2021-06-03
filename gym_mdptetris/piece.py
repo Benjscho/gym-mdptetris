@@ -89,10 +89,9 @@ class Piece():
                         piece[i] |= brick_masks[j]
                         nb_full_cells_on_rows[i] += 1
             self.orientations.append(PieceOrientation(width, height, piece, nb_full_cells_on_rows))
-
-
-            
-        
+    
+    def __str__(self):
+        return self.orientations[0].__str__()
 
 
 class Board():
@@ -122,6 +121,10 @@ class Board():
         self.wall_height = 0
     
     def drop_piece(self, oriented_piece, column, cancellable):
+        if column < 1:
+            raise ValueError("Column must be within board range")
+        if column + oriented_piece.width - 1 > self.width:
+            raise ValueError("Placement overflows board")
         if cancellable:
             self.backup_board = self.board
             self.previous_wall_height = self.wall_height
@@ -170,8 +173,9 @@ class Board():
         return removed_lines
 
     def cancel_last_move(self):
-        pass
-
+        self.board = self.backup_board
+        self.wall_height = self.previous_wall_height
+        
     def get_column_height(self, column):
         pass
 
