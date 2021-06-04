@@ -2,7 +2,7 @@ import numpy as np
 from brick_masks import brick_masks, brick_masks_inv
 
 class PieceOrientation():
-    def __init__(self, width, height, shape, nb_full_cells_on_rows):
+    def __init__(self, width: int, height: int, shape: np.ndarray, nb_full_cells_on_rows: list[int]):
         self.width = width
         self.height = height
         self.shape = shape
@@ -19,8 +19,11 @@ class PieceOrientation():
             s += "\n"
         return s
 
+    def __eq__(self, other):
+        return self.width == other.width and self.height == other.height and self.shape == other.shape
+
 class Piece():
-    def __init__(self, nb_orientations, height, width, shape):
+    def __init__(self, nb_orientations: int, height: int, width: int, shape: str):
         self.nb_orientations = nb_orientations
         self.orientations = []
         piece = np.array([0]*height, np.uint16)
@@ -52,5 +55,8 @@ class Piece():
     
     def __str__(self):
         return self.orientations[0].__str__()
+    
+    def __eq__(self, other):
+        return self.nb_orientations == other.nb_orientations
 
 

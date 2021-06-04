@@ -44,7 +44,7 @@ class Board():
             current_row = destination
             i = 0 
             while i < piece_height and not collision:
-                collision = self.board[current_row] & (oriented_piece.shape[i] >> column)
+                collision = self.board[current_row] & (oriented_piece.shape[piece_height - i - 1] >> column)
                 i += 1
                 current_row += 1
             if not collision:
@@ -56,7 +56,7 @@ class Board():
         wall_height = max(self.wall_height, destination_top)
 
         for i in range(piece_height):
-            self.board[destination + i] |= oriented_piece.shape[i] >> column
+            self.board[destination + i] |= oriented_piece.shape[piece_height - i - 1] >> column
 
         if destination_top <= self.height or self.allow_lines_after_overflow:
             i = 0
