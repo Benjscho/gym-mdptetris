@@ -1,4 +1,5 @@
-from distutils.core import setup
-from Cython.Build import cythonize
+from setuptools import setup
 
-setup(ext_modules = cythonize('src/piece.pyx'))
+setup(name='gym_mdptetris',
+      version='0.0.1',
+      install_requires=['gym'])
