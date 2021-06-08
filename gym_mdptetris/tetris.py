@@ -18,7 +18,6 @@ class Tetris(Env):
         self.board = board.Board(max_piece_height)
         self.current_piece = 0
         self.generator = np.random.default_rng()
-
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
         self.action_space = np.array([i for i in range((self.board.width * 4) - 1)])
@@ -27,13 +26,14 @@ class Tetris(Env):
         done = False
         if action not in self.action_space:
             raise ValueError("Action not in action space.")
-        orientation = action // 10
-        column = action % 10 
-        self.board.drop_piece(self.pieces[self.current_piece].orientation[orientation], column)
-        if self.board.wall_height > self.baord.height:
+        orientation = (action // 10) % self.pieces[self.current_piece].nb_orientations
+        column = (action % 10) + 1
+        column = min(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
+        if self.board.wall_height > self.board.height:
             done = True
         self.current_piece = self.generator.choice(self.nb_pieces)
-        return self.get_state(), done, {}
+        return self.get_state(), reward, done, {}
     
     def reset(self):
         self.board.reset()
@@ -43,7 +43,7 @@ class Tetris(Env):
     def get_state(self):
         return np.array([self.board.board, self.pieces[self.current_piece].orientations[0].shape], dtype=object)
 
-    def render(self):
+    def render(self, mode='human'):
         print("Current piece:")
         print(self.pieces[self.current_piece])
         print(self.board)
