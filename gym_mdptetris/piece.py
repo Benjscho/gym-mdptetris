@@ -24,6 +24,8 @@ class PieceOrientation():
 
 class Piece():
     def __init__(self, nb_orientations: int, height: int, width: int, shape: str):
+        if nb_orientations < 1 or nb_orientations > 4:
+            raise ValueError("Number of orientations must be between 1 and 4")
         self.nb_orientations = nb_orientations
         self.orientations = []
         piece = np.array([0]*height, np.uint16)
@@ -57,6 +59,6 @@ class Piece():
         return self.orientations[0].__str__()
     
     def __eq__(self, other):
-        return self.nb_orientations == other.nb_orientations
+        return self.nb_orientations == other.nb_orientations and self.orientations == other.orientations 
 
 

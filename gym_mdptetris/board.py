@@ -26,7 +26,7 @@ class Board():
         self.board = np.array([self.empty_row]*self.extended_height, np.uint16)
         self.wall_height = 0
     
-    def drop_piece(self, oriented_piece, column, cancellable):
+    def drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
         if column < 1:
             raise ValueError("Column must be within board range")
         if column + oriented_piece.width - 1 > self.width:

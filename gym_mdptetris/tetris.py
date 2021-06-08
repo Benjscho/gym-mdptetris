@@ -1,15 +1,16 @@
 import gym
 import piece
 import board
+import os 
 import numpy as np
-
 
 from gym import Env, spaces
 
 class Tetris(Env):
     def __init__(self, seed=12345):
         super(Tetris, self).__init__()
-        self.pieces, self.nb_pieces = self.load_pieces('data/pieces4.dat')
+        pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/pieces4.dat'
+        self.pieces, self.nb_pieces = self.load_pieces(pieces_path)
         max_piece_height = 0
         for piece in self.pieces:
             for o in piece.orientations:
@@ -18,13 +19,26 @@ class Tetris(Env):
         self.current_piece = 0
         self.generator = np.random.default_rng()
 
-    def step(self, action):
-        pass
+        # Action space is the board width multiplied by the max number of piece orientations, 
+        # zero indexed (so less 1). 
+        self.action_space = np.array([i for i in range((self.board.width * 4) - 1)])
+
+    def step(self, action: int):
+        done = False
+        if action not in self.action_space:
+            raise ValueError("Action not in action space.")
+        orientation = action // 10
+        column = action % 10 
+        self.board.drop_piece(self.pieces[self.current_piece].orientation[orientation], column)
+        if self.board.wall_height > self.baord.height:
+            done = True
+        self.current_piece = self.generator.choice(self.nb_pieces)
+        return self.get_state(), done, {}
     
     def reset(self):
         self.board.reset()
         self.current_piece = self.generator.choice(self.nb_pieces)
-        return np.array([self.board.board, self.pieces[self.current_piece].orientations[0].shape])
+        return self.get_state()
 
     def get_state(self):
         return np.array([self.board.board, self.pieces[self.current_piece].orientations[0].shape])
