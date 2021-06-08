@@ -4,7 +4,10 @@ from brick_masks import brick_masks, brick_masks_inv
 
 class Board():
     def __init__(self, max_piece_height=4, width=10, height=20, nb_pieces=7, allow_lines_after_overflow=False):
-        if width > 14 or width < 5: raise ValueError(f"Width must be between 5 and 14, value given: {width}")
+        if width > 14 or width < 5: 
+            raise ValueError(f"Width must be between 5 and 14, value given: {width}")
+        if max_piece_height > height:
+            raise ValueError(f"Max piece height exceeds board height, max_piece_height: {max_piece_height}")
         self.width = width
         self.height = height
         self.allow_lines_after_overflow = allow_lines_after_overflow
@@ -104,5 +107,4 @@ class Board():
                 else:
                     s += "."
             s += "|\n"
-        s += "\n"
         return s

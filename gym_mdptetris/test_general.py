@@ -37,3 +37,6 @@ if __name__=="__main__":
     pieces, nb_pieces = env.load_pieces('data/pieces4.dat')
     for piece in pieces:
         print(piece)
+    
+    env.reset()
+    env.render()

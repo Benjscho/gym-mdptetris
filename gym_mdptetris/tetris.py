@@ -41,10 +41,13 @@ class Tetris(Env):
         return self.get_state()
 
     def get_state(self):
-        return np.array([self.board.board, self.pieces[self.current_piece].orientations[0].shape])
+        return np.array([self.board.board, self.pieces[self.current_piece].orientations[0].shape], dtype=object)
 
     def render(self):
-        pass
+        print("Current piece:")
+        print(self.pieces[self.current_piece])
+        print(self.board)
+        
 
     def load_pieces(self, piece_file):
         f = open(piece_file, "rt")
