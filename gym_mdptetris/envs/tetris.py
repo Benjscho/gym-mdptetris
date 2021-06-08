@@ -18,6 +18,8 @@ class Tetris(Env):
         self.board = board.Board(max_piece_height)
         self.current_piece = 0
         self.generator = np.random.default_rng()
+        # TODO: Observation space and action space
+        self.observation_space = spaces.Box()
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
         self.action_space = np.array([i for i in range((self.board.width * 4) - 1)])
@@ -47,6 +49,9 @@ class Tetris(Env):
         print("Current piece:")
         print(self.pieces[self.current_piece])
         print(self.board)
+    
+    def close(self):
+        pass
         
 
     def load_pieces(self, piece_file):

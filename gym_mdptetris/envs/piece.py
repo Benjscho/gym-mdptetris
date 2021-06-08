@@ -2,7 +2,7 @@ import numpy as np
 from gym_mdptetris.envs.brick_masks import brick_masks, brick_masks_inv
 
 class PieceOrientation():
-    def __init__(self, width: int, height: int, shape: np.ndarray, nb_full_cells_on_rows: list[int]):
+    def __init__(self, width: int, height: int, shape: np.ndarray, nb_full_cells_on_rows):
         self.width = width
         self.height = height
         self.shape = shape
