@@ -1,7 +1,7 @@
 import unittest
 import piece
 import board
-import env0
+import tetris
 
 S = """
 XX
@@ -21,20 +21,19 @@ if __name__=="__main__":
 
     board = board.Board()
     print(board)
-    board.drop_piece(p.orientations[2], 1, False)
+
+    board.drop_piece(p.orientations[0], 1, False)
     print(board)
-    board.drop_piece(p.orientations[2], 3, False)
+    board.drop_piece(p.orientations[1], 3, False)
     print(board)
     board.drop_piece(p.orientations[2], 5, False)
     print(board)
-    board.drop_piece(p.orientations[2], 7, False)
-    print(board)
-    res = board.drop_piece(p.orientations[2], 9, False)
+    board.drop_piece(p.orientations[3], 7, False)
     print(board)
 
     #print(p)
 
-    env = env0.Tetris0()
-    pieces, nb_pieces = env.load_pieces('data/pieces_melax.dat')
+    env = tetris.Tetris()
+    pieces, nb_pieces = env.load_pieces('data/pieces4.dat')
     for piece in pieces:
         print(piece)

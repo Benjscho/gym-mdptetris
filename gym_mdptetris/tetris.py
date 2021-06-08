@@ -8,7 +8,7 @@ from gym import Env, spaces
 
 class Tetris(Env):
     def __init__(self, seed=12345):
-        super(Tetris0, self).__init__()
+        super(Tetris, self).__init__()
         self.pieces, self.nb_pieces = self.load_pieces('data/pieces4.dat')
         max_piece_height = 0
         for piece in self.pieces:
