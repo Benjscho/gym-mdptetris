@@ -1,7 +1,7 @@
 import gym
-import piece
-import board
 import os 
+import gym_mdptetris.envs.piece as piece
+import gym_mdptetris.envs.board as board
 import numpy as np
 
 from gym import Env, spaces

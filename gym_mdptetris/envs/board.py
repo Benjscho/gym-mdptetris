@@ -1,5 +1,5 @@
 import numpy as np
-from brick_masks import brick_masks, brick_masks_inv
+from gym_mdptetris.envs.brick_masks import brick_masks, brick_masks_inv
 
 
 class Board():

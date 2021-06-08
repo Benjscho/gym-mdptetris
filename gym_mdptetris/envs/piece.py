@@ -1,5 +1,5 @@
 import numpy as np
-from brick_masks import brick_masks, brick_masks_inv
+from gym_mdptetris.envs.brick_masks import brick_masks, brick_masks_inv
 
 class PieceOrientation():
     def __init__(self, width: int, height: int, shape: np.ndarray, nb_full_cells_on_rows: list[int]):
