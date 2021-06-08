@@ -1,10 +1,10 @@
 import unittest
-import tetris
+from gym_mdptetris.envs.tetris import Tetris
 
 class TetrisTests(unittest.TestCase):
     def test_env_init(self):
-        env = tetris.Tetris()
+        env = Tetris()
 
     def test_env_board(self):
-        env = tetris.Tetris()
+        env = Tetris()
         

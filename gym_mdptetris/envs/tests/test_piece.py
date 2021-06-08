@@ -1,5 +1,5 @@
 import unittest
-import piece
+import gym_mdptetris.envs.piece as piece
 
 O = """
 XX

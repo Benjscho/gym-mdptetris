@@ -1,8 +1,8 @@
 import unittest
-import piece
-import board
-import tetris
 import timeit
+import gym_mdptetris.envs.piece as piece
+import gym_mdptetris.envs.board as board
+import gym_mdptetris.envs.tetris as tetris
 
 S = """
 XX
@@ -42,5 +42,5 @@ if __name__=="__main__":
     env.reset()
     env.render()
     
-    
+    # Test how long it takes to make 100,000 steps
     print(timeit.timeit(stmt="env.step(0) \nenv.reset()", setup="import tetris \nenv = tetris.Tetris()", number=100000))
