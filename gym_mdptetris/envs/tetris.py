@@ -20,7 +20,7 @@ class Tetris(Env):
         self.generator = np.random.default_rng()
         # Observation is the representation of the current piece, concatenated with the board
         # Low is represented by the empty board, and high by the full board.
-        self.observation_space = spaces.Box(low=self.board.empty_row, high=self.board.full_row, 
+        self.observation_space = spaces.Box(low=np.iinfo(np.int16).min, high=np.iinfo(np.int16).max, 
                                             shape=(self.get_state().shape), dtype=np.int16)
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
@@ -28,11 +28,11 @@ class Tetris(Env):
 
     def step(self, action: int):
         done = False
-        if action not in self.action_space:
-            raise ValueError("Action not in action space.")
+        #if action not in self.action_space:
+        #    raise ValueError("Action not in action space.")
         orientation = (action // 10) % self.pieces[self.current_piece].nb_orientations
         column = (action % 10) + 1
-        column = min(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
         reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
         if self.board.wall_height > self.board.height:
             done = True
@@ -45,10 +45,7 @@ class Tetris(Env):
         return self.get_state()
 
     def get_state(self):
-        p = np.array([0 for i in range(self.max_piece_height)], np.int16)
-        for i in range(self.pieces[self.current_piece].orientations[0].height):
-            p[i] = self.pieces[self.current_piece].orientations[0].shape[i]
-        return np.concatenate((p, self.board.board))
+        return np.concatenate(([self.current_piece], self.board.board))
 
     def render(self, mode='human'):
         print("Current piece:")
