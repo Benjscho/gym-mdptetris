@@ -11,15 +11,17 @@ class Tetris(Env):
         super(Tetris, self).__init__()
         pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/pieces4.dat'
         self.pieces, self.nb_pieces = self.load_pieces(pieces_path)
-        max_piece_height = 0
+        self.max_piece_height = 0
         for piece in self.pieces:
             for o in piece.orientations:
-                max_piece_height = max(max_piece_height, o.height)
-        self.board = board.Board(max_piece_height)
+                self.max_piece_height = max(self.max_piece_height, o.height)
+        self.board = board.Board(max_piece_height=self.max_piece_height)
         self.current_piece = 0
         self.generator = np.random.default_rng()
-        # TODO: Observation space and action space
-        self.observation_space = spaces.Box()
+        # Observation is the representation of the current piece, concatenated with the board
+        # Low is represented by the empty board, and high by the full board.
+        self.observation_space = spaces.Box(low=self.board.empty_row, high=self.board.full_row, 
+                                            shape=(self.get_state().shape), dtype=np.uint16)
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
         self.action_space = np.array([i for i in range((self.board.width * 4) - 1)])
@@ -43,7 +45,10 @@ class Tetris(Env):
         return self.get_state()
 
     def get_state(self):
-        return np.array([self.board.board, self.pieces[self.current_piece].orientations[0].shape], dtype=object)
+        p = np.array([0 for i in range(self.max_piece_height)], np.uint16)
+        for i in range(self.pieces[self.current_piece].orientations[0].height):
+            p[i] = self.pieces[self.current_piece].orientations[0].shape[i]
+        return np.concatenate((p, self.board.board), dtype=np.uint16)
 
     def render(self, mode='human'):
         print("Current piece:")
@@ -52,9 +57,11 @@ class Tetris(Env):
     
     def close(self):
         pass
-        
 
-    def load_pieces(self, piece_file):
+    def seed(self, seed_value: int):
+        self.generator = np.random.default_rng(seed_value)
+
+    def load_pieces(self, piece_file: str):
         f = open(piece_file, "rt")
         pieces = [] 
         

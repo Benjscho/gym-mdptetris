@@ -31,6 +31,14 @@ class pieceTests(unittest.TestCase):
             l = piece.Piece(4, -3, 2, L)
         with self.assertRaises(ValueError):
             l = piece.Piece(4, 3, -2, L)
+    
+    def test_piece_type(self):
+        with self.assertRaises(TypeError):
+            l = piece.Piece(4, 3, 2, 1)
+
+    def test_empty_piece(self):
+        with self.assertRaises(ValueError):
+            l = piece.Piece(4, 3, 2, "")
 
 if __name__=='__main__':
     unittest.main()

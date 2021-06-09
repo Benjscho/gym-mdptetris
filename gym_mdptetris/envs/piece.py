@@ -30,6 +30,10 @@ class Piece():
             raise ValueError("Height must be positive integer")
         if width <= 0:
             raise ValueError("Width must be positive integer")
+        if type(shape) != str: 
+            raise TypeError("Shape must be a string")
+        if "X" not in shape:
+            raise ValueError("Shape cannot be empty")
         self.nb_orientations = nb_orientations
         self.orientations = []
         piece = np.array([0]*height, np.uint16)
