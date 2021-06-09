@@ -1,4 +1,5 @@
 import unittest
+import os
 import timeit
 import gym_mdptetris.envs.piece as piece
 import gym_mdptetris.envs.board as board
@@ -33,11 +34,7 @@ if __name__=="__main__":
     print(board)
 
     #print(p)
-
     env = tetris.Tetris()
-    pieces, nb_pieces = env.load_pieces('data/pieces4.dat')
-    for piece in pieces:
-        print(piece)
     
     env.reset()
     env.render()

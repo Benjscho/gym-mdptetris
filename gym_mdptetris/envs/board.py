@@ -21,12 +21,12 @@ class Board():
         
         self.extended_height = height + self.max_piece_height
 
-        self.board = np.array([self.empty_row]*self.extended_height, np.uint16)
+        self.board = np.array([self.empty_row]*self.extended_height, np.int16)
         self.wall_height = 0
 
 
     def reset(self):
-        self.board = np.array([self.empty_row]*self.extended_height, np.uint16)
+        self.board = np.array([self.empty_row]*self.extended_height, np.int16)
         self.wall_height = 0
     
     def drop_piece(self, oriented_piece, column: int, cancellable: bool = False):

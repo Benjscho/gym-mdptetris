@@ -17,7 +17,7 @@ brick_masks = np.array([
   0x0004,
   0x0002, # ..............X. */
   0x0001  # ...............X */
-], np.uint16)
+], np.int16)
 
 brick_masks_inv = np.array([
   0x7FFF, # .XXXXXXXXXXXXXXX */
@@ -36,4 +36,4 @@ brick_masks_inv = np.array([
   0x0004,
   0x0002, # XXXXXXXXXXXXXX.X */
   0x0001  # XXXXXXXXXXXXXXX. */
-], np.uint16)
+], np.int16)
