@@ -7,15 +7,16 @@ import numpy as np
 from gym import Env, spaces
 
 class Tetris(Env):
-    def __init__(self, seed=12345):
+    def __init__(self, board_height=20, board_width=10, piece_set='pieces4.dat', allow_overflow=False, seed=12345):
         super(Tetris, self).__init__()
-        pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/pieces4.dat'
+        pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/' + piece_set
         self.pieces, self.nb_pieces = self.load_pieces(pieces_path)
         self.max_piece_height = 0
         for piece in self.pieces:
             for o in piece.orientations:
                 self.max_piece_height = max(self.max_piece_height, o.height)
-        self.board = board.Board(max_piece_height=self.max_piece_height)
+        self.board = board.Board(max_piece_height=self.max_piece_height, width=board_width, 
+                                height=board_height, allow_lines_after_overflow=allow_overflow, nb_pieces=len(self.pieces))
         self.current_piece = 0
         self.generator = np.random.default_rng()
         # Observation is the representation of the current piece, concatenated with the board
@@ -28,8 +29,6 @@ class Tetris(Env):
 
     def step(self, action: int):
         done = False
-        #if action not in self.action_space:
-        #    raise ValueError("Action not in action space.")
         orientation = (action // 10) % self.pieces[self.current_piece].nb_orientations
         column = (action % 10) + 1
         column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
@@ -82,3 +81,19 @@ class Tetris(Env):
 
         return pieces, nb_pieces
 
+
+class MelaxTetris(Tetris):
+    def __init__(self):
+        super(MelaxTetris, self).__init__(board_height=2, board_width=6, 
+                            piece_set='pieces_melax.dat', allow_overflow=True)
+
+    def step(self, action: int):
+        done = False
+        orientation = (action // self.board.width) % self.pieces[self.current_piece].nb_orientations
+        column = (action % self.board.width) + 1
+        column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        reward = -self.board.drop_piece_overflow(self.pieces[self.current_piece].orientations[orientation], column)
+        if self.board.wall_height > self.board.height:
+            done = True
+        self.current_piece = self.generator.choice(self.nb_pieces)
+        return self.get_state(), reward, done, {}
