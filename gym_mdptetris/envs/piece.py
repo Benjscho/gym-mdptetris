@@ -2,7 +2,19 @@ import numpy as np
 from gym_mdptetris.envs.brick_masks import brick_masks, brick_masks_inv
 
 class PieceOrientation():
+    """
+    Class defining an oriented piece. Pieces are represented as 1D arrays of
+    integers. 
+    """
     def __init__(self, width: int, height: int, shape: np.ndarray, nb_full_cells_on_rows):
+        """
+        Constructor. Initiate a piece orientation.
+
+        :param width: width of the piece orientation.
+        :param height: height of the piece orientation
+        :param shape: representation of the piece orientation as a 1D numpy
+            integer array. 
+        """
         self.width = width
         self.height = height
         self.shape = shape
@@ -23,7 +35,23 @@ class PieceOrientation():
         return self.width == other.width and self.height == other.height and self.shape == other.shape
 
 class Piece():
+    """ 
+    Class defining a piece as an array of PieceOrientations. 
+    """
     def __init__(self, nb_orientations: int, height: int, width: int, shape: str):
+        """
+        Constructor. Takes in an initial orientation representation of a piece
+        and initialises all of its orientations as an array of 
+        PieceOrientations.
+
+        :param nb_orientations: number of orientations this piece has
+            based on 90 degree rotation.
+        :param height: height of the initial orientation given in `shape`.
+        :param width: width of the initial orientation given in `shape`.
+        :param shape: string representation of the piece shape in its initial 
+            orientation. 'X' indicates a full block, ' ' a space, and '\\n' 
+            a newline. E.g., "XX\nXX" would represent the square Tetris block.
+        """
         if nb_orientations < 1 or nb_orientations > 4:
             raise ValueError("Number of orientations must be between 1 and 4")
         if height <= 0:

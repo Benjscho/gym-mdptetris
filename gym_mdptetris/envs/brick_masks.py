@@ -1,5 +1,12 @@
 import numpy as np
 
+"""
+Brick masks used in identifying brick locations on the Tetris board.
+
+Attribution: taken from the MDPTetris implementation by Scherrer and Theirry
+(http://mdptetris.gforge.inria.fr/doc/). 
+"""
+
 brick_masks = np.array([
   0x8000, # X............... */
   0x4000, # .X.............. */

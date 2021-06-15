@@ -3,7 +3,21 @@ from gym_mdptetris.envs.brick_masks import brick_masks, brick_masks_inv
 
 
 class Board():
-    def __init__(self, max_piece_height=4, width=10, height=20, nb_pieces=7, allow_lines_after_overflow=False):
+    """
+    Board class. Implements a Tetris board as a 1D array of integers. Each
+    row of the board is represented by a 16 bit integer
+    """
+    def __init__(self, max_piece_height=4, width=10, height=20, 
+                allow_lines_after_overflow=False):
+        """
+        Constructor. Initialises an empty board. 
+
+        :param max_piece_height: max height of any piece passed to the board.
+        :param width: width of the board.
+        :param height: height of the board.
+        :param allow_lines_after_overflow: allow placement after exceeding
+            board height. 
+        """
         if width > 14 or width < 5: 
             raise ValueError(f"Width must be between 5 and 14, value given: {width}")
         if max_piece_height > height:
@@ -26,17 +40,29 @@ class Board():
 
 
     def reset(self):
+        """
+        Reset the state of the board.
+        """        
         self.board = np.array([self.empty_row]*self.extended_height, np.int16)
         self.wall_height = 0
     
     def drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
-        # Checks removed for speed 
-        #if column < 1:
-        #    raise ValueError("Column must be within board range")
-        #if column + oriented_piece.width - 1 > self.width:
-        #    raise ValueError("Placement overflows board")
+        """
+        Method to implement piece drop on a board. 
+
+        :param oriented_piece: a PieceOrientation object to be dropped on
+            the board.
+        :param column: the column the piece should be dropped in. The column
+            should be less than `board_width - oriented_piece.width` as there
+            are no protections against piece overflow in this method due to
+            speed requirements.
+        :param cancellable: bool, backs up the board state if true. 
+        :return:
+            Returns the number of rows cleared by a piece drop for use as a 
+            reward signal.
+        """
         if cancellable:
-            self.backup_board = self.board
+            self.backup_board = self.board.copy()
             self.previous_wall_height = self.wall_height
 
         piece_height = oriented_piece.height
@@ -44,9 +70,12 @@ class Board():
         removed_lines = 0 
 
         collision = 0
+        # Descend the piece while there has been no collision and while the 
+        # piece is on the board.
         while destination >= 0 and not collision:
             current_row = destination
             i = 0 
+            # Iterate through the piece height to detect collision
             while i < piece_height and not collision:
                 collision = self.board[current_row] & (oriented_piece.shape[piece_height - i - 1] >> column)
                 i += 1
@@ -83,6 +112,23 @@ class Board():
         return removed_lines
 
     def drop_piece_overflow(self, oriented_piece, column: int, cancellable: bool = False):
+        """
+        Method to implement piece drop on a board. If the board overflows as
+        a result, remove rows from the bottom up until the board is within 
+        bounds again. Used in small state space versions of Tetris, or 
+        implementations that minimise row overflow. 
+
+        :param oriented_piece: a PieceOrientation object to be dropped on
+            the board.
+        :param column: the column the piece should be dropped in. The column
+            should be less than `board_width - oriented_piece.width` as there
+            are no protections against piece overflow in this method due to
+            speed requirements.
+        :param cancellable: bool, backs up the board state if true. 
+        :return:
+            Returns the number of rows the last piece exceeded the height
+            of the board by. Used as a reward signal. 
+        """
         if cancellable:
             self.backup_board = self.board
             self.previous_wall_height = self.wall_height
@@ -138,6 +184,9 @@ class Board():
         return nb_over
 
     def cancel_last_move(self):
+        """
+        Uses board backup to cancel the last move. Used in linear evaluation.
+        """
         self.board = self.backup_board
         self.wall_height = self.previous_wall_height
         
@@ -145,6 +194,9 @@ class Board():
         pass
 
     def __str__(self):
+        """
+        :return: returns board state as a printable string. 
+        """
         s = ""
         for i in range(self.wall_height, self.height - 1, -1):
             s += " "

@@ -1,1 +1,1 @@
-from gym_mdptetris.envs.tetris import Tetris
+from gym_mdptetris.envs.tetris import Tetris, MelaxTetris
