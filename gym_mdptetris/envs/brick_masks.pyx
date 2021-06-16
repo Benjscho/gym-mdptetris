@@ -1,5 +1,4 @@
-import numpy as np
-
+from cpython cimport array
 """
 Brick masks used in identifying brick locations on the Tetris board.
 
@@ -7,7 +6,7 @@ Attribution: taken from the MDPTetris implementation by Scherrer and Theirry
 (http://mdptetris.gforge.inria.fr/doc/). 
 """
 
-brick_masks = np.array([
+cdef array.array brick_masks = array.array('H', [
   0x8000, # X............... */
   0x4000, # .X.............. */
   0x2000, # ..X............. */
@@ -24,9 +23,9 @@ brick_masks = np.array([
   0x0004,
   0x0002, # ..............X. */
   0x0001  # ...............X */
-], np.int16)
+])
 
-brick_masks_inv = np.array([
+cdef array.array brick_masks_inv = array.array('H', [
   0x7FFF, # .XXXXXXXXXXXXXXX */
   0x4000, # X.XXXXXXXXXXXXXX */
   0x2000, # XX.XXXXXXXXXXXXX */
@@ -43,4 +42,4 @@ brick_masks_inv = np.array([
   0x0004,
   0x0002, # XXXXXXXXXXXXXX.X */
   0x0001  # XXXXXXXXXXXXXXX. */
-], np.int16)
+])

@@ -1,12 +1,12 @@
-import numpy as np
-from gym_mdptetris.envs.brick_masks import brick_masks, brick_masks_inv
+from cpython cimport array
+from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
 
 class PieceOrientation():
     """
     Class defining an oriented piece. Pieces are represented as 1D arrays of
     integers. 
     """
-    def __init__(self, width: int, height: int, shape: np.ndarray, nb_full_cells_on_rows):
+    def __init__(self, width: int, height: int, shape, nb_full_cells_on_rows):
         """
         Constructor. Initiate a piece orientation.
 
@@ -64,7 +64,7 @@ class Piece():
             raise ValueError("Shape cannot be empty")
         self.nb_orientations = nb_orientations
         self.orientations = []
-        piece = np.array([0]*height, np.uint16)
+        piece = array.array('H', [0]*height)
         nb_full_cells_on_rows = [0]*height
         i, j = 0, 0
         for c in shape.strip("\n"):
@@ -82,7 +82,7 @@ class Piece():
             tmp = height
             height = width
             width = tmp 
-            piece = np.array([0]*height, np.uint16)
+            piece = array.array('H', [0]*height)
             nb_full_cells_on_rows = [0]*height
             for i in range(height):
                 for j in range(width):

@@ -6,4 +6,4 @@ class BoardTests(unittest.TestCase):
         b = Board()
     
     def test_board_limits(self):
-        b = Board(max_piece_height=4, width=10, height=20, nb_pieces=7, allow_lines_after_overflow=False)
+        b = Board(max_piece_height=4, width=10, height=20)
