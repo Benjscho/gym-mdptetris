@@ -19,8 +19,6 @@ class TetrisTests(unittest.TestCase):
     def test_piece_file(self):
         env = Tetris()
     
-    def test_state_obs_space(self):
-        self.assertEqual(self._env.get_state().shape, self._env.observation_space.shape)
 
     def test_piecedrops(self):
         self._env.reset()

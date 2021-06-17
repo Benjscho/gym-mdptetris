@@ -92,7 +92,7 @@ cdef class CyTetris():
         cdef int orientation
         cdef int column
         cdef bint done = False
-        orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations)
+        orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
         column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
         reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
         # This done check doesn't add much
@@ -123,6 +123,8 @@ cdef class CyTetris():
         and the board state. The board state is the underlying 1D numpy 
         integer array. For more details see the `Board` class. 
         """
+        # TODO: Translate this to a tuple of current piece and board array? 
+        # Will also mean altering how the state space is defined 
         return np.concatenate(([self.current_piece], self.board.board))
 
     def render(self, mode='human'):
