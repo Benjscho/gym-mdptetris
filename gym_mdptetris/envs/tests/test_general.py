@@ -38,6 +38,5 @@ if __name__=="__main__":
     
     env.reset()
     env.render()
-    print(env.get_state())
     # Test how long it takes to make 100,000 steps
-    print(timeit.timeit(stmt="env.step(0) \nenv.reset()", setup="import gym_mdptetris.envs.tetris as tetris \nenv = tetris.Tetris()", number=100000))
+    print(timeit.timeit(stmt="env.step((0, 0)) \nenv.reset()", setup="import gym_mdptetris.envs.tetris as tetris \nenv = tetris.Tetris()", number=100000))

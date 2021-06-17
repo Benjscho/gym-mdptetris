@@ -1,5 +1,6 @@
 import gym
 import os 
+import random
 import gym_mdptetris.envs.piece as piece
 import gym_mdptetris.envs.board as board
 import numpy as np
@@ -24,6 +25,8 @@ cdef class CyTetris():
         int nb_pieces
         int max_piece_height
         int current_piece
+        int board_width
+        int board_height
 
     def __init__(self, board_height=20, board_width=10, 
                 piece_set='pieces4.dat', allow_overflow=False, seed=12345):
@@ -39,7 +42,8 @@ cdef class CyTetris():
 
         TODO: Implement selected piece sequences
         """
-        #super(Tetris, self).__init__()
+        self.board_height = board_height
+        self.board_width = board_width
         pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/' + piece_set
         self.pieces, self.nb_pieces = self._load_pieces(pieces_path)
         self.max_piece_height = 0
@@ -49,15 +53,28 @@ cdef class CyTetris():
         self.board = board.Board(max_piece_height=self.max_piece_height, 
                 width=board_width, height=board_height, allow_lines_after_overflow=allow_overflow)
         self.current_piece = 0
-        self.generator = np.random.default_rng()
+        random.seed(seed)
         # Observation is the representation of the current piece, concatenated with the board
         self.observation_space = spaces.Box(low=np.iinfo(np.int16).min, high=np.iinfo(np.int16).max, 
-                                            shape=(self.get_state().shape), dtype=np.int16)
+                                            shape=(self._get_state().shape), dtype=np.int16)
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
-        self.action_space = spaces.Discrete(4*self.board.width)
+        self.action_space = spaces.Tuple((spaces.Discrete(4),
+                                        spaces.Discrete(self.board.width)))
 
-    cpdef step(self, action: int):
+    cdef clamp(self, int val, int min, int max):
+        if val < min:
+            return min
+        elif val > max:
+            return max
+        else:
+            return val
+
+    cdef void new_piece(self):
+        # This delivers a dramatic improvement on speed
+        self.current_piece = random.choice(range(self.nb_pieces))
+
+    cpdef step(self, (int, int) action):
         """
         Run one step of the environment. 
 
@@ -72,14 +89,21 @@ cdef class CyTetris():
                 further step() calls are undefined
             info: auxiliary information 
         """
-        orientation = (action // 10) % self.pieces[self.current_piece].nb_orientations
-        column = (action % 10) + 1
-        column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        cdef int orientation
+        cdef int column
+        cdef bint done = False
+        orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations)
+        column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
         reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
+        # This done check doesn't add much
         if self.board.wall_height > self.board.height:
             done = True
-        self.current_piece = self.generator.choice(self.nb_pieces)
-        return self.get_state(), reward, done, {}
+        # Choosing a new piece adds about 2s, could this be faster? 
+        #self.current_piece = self.generator.choice(self.nb_pieces)
+        # VAST difference in speed with this method
+        self.new_piece()
+        # get_state adds 1s currently, could be faster? 
+        return self._get_state(), reward, done, {}
     
     cpdef reset(self):
         """
@@ -88,10 +112,11 @@ cdef class CyTetris():
         :return: returns the current state
         """
         self.board.reset()
-        self.current_piece = self.generator.choice(self.nb_pieces)
-        return self.get_state()
+        #self.current_piece = self.generator.choice(self.nb_pieces)
+        self.new_piece()
+        return self._get_state()
 
-    cpdef get_state(self):
+    cdef _get_state(self):
         """
         Returns the current state of the environment as 1D numpy array.
         The state is represented by a concatenation of the current piece id
@@ -114,7 +139,7 @@ cdef class CyTetris():
 
         :param seed_value: new seed value.
         """
-        self.generator = np.random.default_rng(seed_value)
+        random.seed(seed_value)
 
     cdef _load_pieces(self, piece_file: str):
         """
@@ -168,11 +193,12 @@ class MelaxTetris(Tetris):
         self.piece_drops = 0
         self.max_pieces = max_pieces
 
-    def step(self, action: int):
+    def step(self, action: tuple):
         self.piece_drops += 1
         done = False
-        orientation = (action // self.board.width) % self.pieces[self.current_piece].nb_orientations
-        column = (action % self.board.width) + 1
+        orientation, column = action
+        orientation = self.clamp(orientation, 0, self.pieces[self.current_piece].nb_orientations)
+        column = self.clamp(column + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
         column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
         reward = -self.board.drop_piece_overflow(self.pieces[self.current_piece].orientations[orientation], column)
         if self.piece_drops > self.max_pieces:
