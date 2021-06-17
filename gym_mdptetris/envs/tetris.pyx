@@ -59,8 +59,7 @@ cdef class CyTetris():
                                             shape=(self._get_state().shape), dtype=np.int16)
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
-        self.action_space = spaces.Tuple((spaces.Discrete(4),
-                                        spaces.Discrete(self.board.width)))
+        self.action_space = spaces.MultiDiscrete([4, self.board.width])
 
     cdef clamp(self, int val, int min, int max):
         if val < min:
@@ -74,7 +73,7 @@ cdef class CyTetris():
         # This delivers a dramatic improvement on speed
         self.current_piece = random.choice(range(self.nb_pieces))
 
-    cpdef step(self, (int, int) action):
+    cpdef step(self, action):
         """
         Run one step of the environment. 
 
@@ -199,7 +198,7 @@ cdef class CyMelaxTetris(CyTetris):
         self.piece_drops = 0
         self.max_pieces = max_pieces
 
-    def step(self, action: tuple):
+    def step(self, action):
         self.piece_drops += 1
         cdef bint done = False
         orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
