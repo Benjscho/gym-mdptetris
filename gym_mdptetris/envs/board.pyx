@@ -3,7 +3,17 @@ from cpython cimport array
 from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
 
 cdef class CyBoard():
-    cdef public array.array board
+    cdef public: 
+        array.array board
+        int width
+        int height
+        bint allow_lines_after_overflow
+        unsigned short full_row 
+        unsigned short empty_row
+        int extended_height
+        int max_piece_height
+        int wall_height
+    
     def __init__(self, int max_piece_height=4, int width=10, int height=20, 
                 bint allow_lines_after_overflow=False):
         self.width = width
@@ -88,7 +98,7 @@ cdef class CyBoard():
         self.wall_height = wall_height
         return removed_lines
     
-    cpdef reset(self):
+    cpdef void reset(self):
         """
         Reset the state of the board.
         """        
