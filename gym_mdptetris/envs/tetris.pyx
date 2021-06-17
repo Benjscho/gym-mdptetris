@@ -6,7 +6,7 @@ import numpy as np
 
 from gym import Env, spaces
 
-class Tetris(Env):
+cdef class CyTetris():
     """
     A class which implements a standard game of Tetris for reinforcement learning
     conforming to the OpenAI Gym Env interface. 
@@ -19,6 +19,12 @@ class Tetris(Env):
     of Scherrer and Thiery, http://mdptetris.gforge.inria.fr/doc/. 
     In addition method docstrings are adapted from OpenAI Gym source. 
     """
+
+    cdef public:
+        int nb_pieces
+        int max_piece_height
+        int current_piece
+
     def __init__(self, board_height=20, board_width=10, 
                 piece_set='pieces4.dat', allow_overflow=False, seed=12345):
         """
@@ -33,9 +39,9 @@ class Tetris(Env):
 
         TODO: Implement selected piece sequences
         """
-        super(Tetris, self).__init__()
+        #super(Tetris, self).__init__()
         pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/' + piece_set
-        self.pieces, self.nb_pieces = self.load_pieces(pieces_path)
+        self.pieces, self.nb_pieces = self._load_pieces(pieces_path)
         self.max_piece_height = 0
         for piece in self.pieces:
             for o in piece.orientations:
@@ -51,7 +57,7 @@ class Tetris(Env):
         # zero indexed (so less 1). 
         self.action_space = spaces.Discrete(4*self.board.width)
 
-    def step(self, action: int):
+    cpdef step(self, action: int):
         """
         Run one step of the environment. 
 
@@ -66,7 +72,6 @@ class Tetris(Env):
                 further step() calls are undefined
             info: auxiliary information 
         """
-        done = False
         orientation = (action // 10) % self.pieces[self.current_piece].nb_orientations
         column = (action % 10) + 1
         column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
@@ -76,7 +81,7 @@ class Tetris(Env):
         self.current_piece = self.generator.choice(self.nb_pieces)
         return self.get_state(), reward, done, {}
     
-    def reset(self):
+    cpdef reset(self):
         """
         Reset the environment board and select a new random piece. 
 
@@ -86,7 +91,7 @@ class Tetris(Env):
         self.current_piece = self.generator.choice(self.nb_pieces)
         return self.get_state()
 
-    def get_state(self):
+    cpdef get_state(self):
         """
         Returns the current state of the environment as 1D numpy array.
         The state is represented by a concatenation of the current piece id
@@ -111,7 +116,7 @@ class Tetris(Env):
         """
         self.generator = np.random.default_rng(seed_value)
 
-    def load_pieces(self, piece_file: str):
+    cdef _load_pieces(self, piece_file: str):
         """
         Load pieces from a data file. Comments in a file are marked by starting
         the line with '#'. The first non-comment line indicates the number
@@ -147,6 +152,11 @@ class Tetris(Env):
 
         return pieces, nb_pieces
 
+class Tetris(CyTetris, Env):
+    def __init__(self, board_height=20, board_width=10, 
+                piece_set='pieces4.dat', allow_overflow=False, seed=12345):
+        super(Tetris, self).__init__(board_height=board_height, board_width=board_width,
+                piece_set=piece_set, allow_overflow=allow_overflow, seed=seed)
 
 class MelaxTetris(Tetris):
     """
