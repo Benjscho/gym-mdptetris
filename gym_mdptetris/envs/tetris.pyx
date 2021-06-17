@@ -185,31 +185,37 @@ class Tetris(CyTetris, Env):
         super(Tetris, self).__init__(board_height=board_height, board_width=board_width,
                 piece_set=piece_set, allow_overflow=allow_overflow, seed=seed)
 
-class MelaxTetris(Tetris):
+cdef class CyMelaxTetris(CyTetris):
     """
     A class which implements a reduced board size game of Tetris for reinforcement learning.
     """
+    cdef public:
+        int max_pieces
+        int piece_drops
+
     def __init__(self, max_pieces=1000):
-        super(MelaxTetris, self).__init__(board_height=2, board_width=6, 
+        super(CyMelaxTetris, self).__init__(board_height=2, board_width=6, 
                             piece_set='pieces_melax.dat', allow_overflow=True)
         self.piece_drops = 0
         self.max_pieces = max_pieces
 
     def step(self, action: tuple):
         self.piece_drops += 1
-        done = False
-        orientation, column = action
-        orientation = self.clamp(orientation, 0, self.pieces[self.current_piece].nb_orientations)
-        column = self.clamp(column + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
-        column = np.minimum(column, self.board.width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        cdef bint done = False
+        orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
+        column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
         reward = -self.board.drop_piece_overflow(self.pieces[self.current_piece].orientations[orientation], column)
         if self.piece_drops > self.max_pieces:
             done = True
-        self.current_piece = self.generator.choice(self.nb_pieces)
-        return self.get_state(), reward, done, {}
+        self.new_piece()
+        return self._get_state(), reward, done, {}
        
     def reset(self):
         self.board.reset()
-        self.current_piece = self.generator.choice(self.nb_pieces)
+        self.new_piece()
         self.piece_drops = 0
-        return self.get_state()
+        return self._get_state()
+
+class MelaxTetris(CyMelaxTetris, Env):
+    def __init__(self, max_pieces=1000):
+        super(MelaxTetris, self).__init__(max_pieces=max_pieces)
