@@ -1,9 +1,11 @@
 import os
 import sys
 import subprocess
+import numpy 
 
 from setuptools import setup
 from distutils.core import setup
+from distutils.extension import Extension
 from Cython.Build import cythonize
 
 args = sys.argv[1:]
@@ -22,4 +24,4 @@ setup(name='gym_mdptetris',
     install_requires=['gym'],
     author="Ben Schofield",
     license='MIT',
-    ext_modules=cythonize('gym_mdptetris/envs/*.pyx'))
+    ext_modules=cythonize([Extension("*.pyx", ['gym_mdptetris/envs/*.pyx'], include_dirs=[numpy.get_include()])]))

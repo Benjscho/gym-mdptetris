@@ -4,6 +4,8 @@ import random
 import gym_mdptetris.envs.piece as piece
 import gym_mdptetris.envs.board as board
 import numpy as np
+cimport numpy as np
+from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
 
 from gym import Env, spaces
 
@@ -50,13 +52,16 @@ cdef class CyTetris():
         for piece in self.pieces:
             for o in piece.orientations:
                 self.max_piece_height = max(self.max_piece_height, o.height)
+        #min_sizes = np.array([])
         self.board = board.Board(max_piece_height=self.max_piece_height, 
                 width=board_width, height=board_height, allow_lines_after_overflow=allow_overflow)
         self.current_piece = 0
         random.seed(seed)
         # Observation is the representation of the current piece, concatenated with the board
-        self.observation_space = spaces.Box(low=np.iinfo(np.int16).min, high=np.iinfo(np.int16).max, 
-                                            shape=(self._get_state().shape), dtype=np.int16)
+        # TODO: restore observation space 
+        #self.observation_space = spaces.Box(low=np.iinfo(np.int16).min, high=np.iinfo(np.int16).max, 
+        #                                    shape=(self._get_state().shape), dtype=np.int16)
+
         # Action space is the board width multiplied by the max number of piece orientations, 
         # zero indexed (so less 1). 
         self.action_space = spaces.MultiDiscrete([4, self.board.width])
@@ -115,16 +120,24 @@ cdef class CyTetris():
         self.new_piece()
         return self._get_state()
 
-    cdef _get_state(self):
+    cpdef _get_state(self):
         """
         Returns the current state of the environment as 1D numpy array.
         The state is represented by a concatenation of the current piece id
         and the board state. The board state is the underlying 1D numpy 
         integer array. For more details see the `Board` class. 
         """
-        # TODO: Translate this to a tuple of current piece and board array? 
-        # Will also mean altering how the state space is defined 
-        return np.concatenate(([self.current_piece], self.board.board))
+        # TODO: Translate this to a tuple of current piece and board array?
+        # Will also mean altering how the state space is defined
+        cdef int i 
+        cdef int j 
+        cdef np.ndarray a 
+        a = np.empty((self.board_height, self.board_width), dtype=np.int16)
+        for i in range(self.board_height - 1, -1 , -1):
+            for j in range(1, self.board_width + 1):
+                a[i][j - 1] = 1 if self.board.board[i] & brick_masks[j] else 0
+        return (self.current_piece, a)
+        #return np.concatenate(([self.current_piece], self.board.board))
 
     def render(self, mode='human'):
         print("Current piece:")
