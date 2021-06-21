@@ -17,15 +17,29 @@ class BinaryBoard():
         self.board = np.zeros((self.extended_height, self.width), dtype='bool')
         self.wall_height = 0 
 
-	def _top_cols(self):
-		"""
-		Method to find the top of each column. Result is -1 if column is empty.
-		Attribution: Modified implementation of this code: 
-		https://stackoverflow.com/a/47269413/14354978
-		"""
-		mask = self.board != False
-		val = self.board.shape[0] - np.flip(mask, axis=0).argmax(axis=0) - 1
-		return np.where(mask.any(axis=0), val, -1)
+    def highest_block(self, arr, axis=0, invalid_val=-1):
+        """
+        Find the highest block in an array. Adapted from attribution code 
+        Attribution: https://stackoverflow.com/a/47269413/14354978
+        """
+        mask = arr != False
+        val = arr.shape[0] - np.flip(mask, axis=axis).argmax(axis=0) - 1
+        return np.where(mask.any(axis=axis), val, -1)
+
+    def lowest_block(self, arr, axis=0, invalid_val=-1):
+        """
+        Find the lowest block in an array. Used to find piece intersection.
+        Adapted from attribution code 
+        Attribution: https://stackoverflow.com/a/47269413/14354978
+        """
+        mask = arr != False 
+        return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
+    def _top_cols(self):
+        """
+        Method to find the top of each column. Result is -1 if column is empty.
+        """
+        return self.highest_block(self.board, axis=0)
     
     def drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
         """
@@ -43,33 +57,27 @@ class BinaryBoard():
             reward signal.
         """
         if cancellable:
-            self.backup_board = self.board.copy()
+            self.backup_board = np.copy(self.board)
             self.previous_wall_height = self.wall_height
 
         piece_height = oriented_piece.height
-        destination = self.wall_height
-        removed_lines = 0 
+        destination = -1
+        removed_lines = 0
+        col_heights = self._top_cols()
 
-        collision = 0
-        # Descend the piece while there has been no collision and while the 
-        # piece is on the board.
-        while destination >= 0 and collision == 0:
-            current_row = destination
-            i = 0 
-            # Iterate through the piece height to detect collision
-            while i < piece_height and collision == 0:
-                collision = self.board[current_row] & (oriented_piece.shape[piece_height - i - 1] >> column)
-                i += 1
-                current_row += 1
-            if not collision:
-                destination -= 1
+        piece_heights = self.lowest_block(oriented_piece.shape)
+        for i in range(oriented_piece.width):
+            intersect = col_heights[column + i] - piece_heights[i]
+            destination = max(destination, intersect)
         destination += 1
+
+        for i in range(destination, destination + oriented_piece.height):
+            for j in range(column, column + oriented_piece.width):
+                self.board[i][j] |= oriented_piece.shape[i - destination][j - column]
 
         destination_top = destination + piece_height
 
         wall_height = np.maximum(self.wall_height, destination_top)
-        for i in range(piece_height):
-            self.board[destination + i] |= oriented_piece.shape[piece_height - i - 1] >> column
 
         if destination_top <= self.height or self.allow_lines_after_overflow:
             i = 0
@@ -77,12 +85,12 @@ class BinaryBoard():
 
             while i < i_stop:
                 current_row = destination + i
-                if self.board[current_row] == self.full_row:
+                if np.all(self.board[current_row]) == True:
                     j = current_row
-                    while j < wall_height -1 and self.board[j] != self.empty_row:
+                    while j < wall_height -1 and np.all(self.board[j] != False):
                         self.board[j] = self.board[j+1]
                         j += 1
-                    self.board[j] = self.empty_row
+                    self.board[j] = False
                     wall_height -= 1
                     removed_lines += 1
                     i_stop -= 1
@@ -163,8 +171,8 @@ class BinaryBoard():
         nb_over = 0
         if wall_height > self.height:
             nb_over = wall_height - self.height 
-            self.board[:self.height] = self.board[nb_over:wall_height]
-            self.board[self.height:] = array.array('H', [self.empty_row]*(self.extended_height - self.height))
+            #self.board[:self.height] = self.board[nb_over:wall_height]
+            #self.board[self.height:] = array.array('H', [self.empty_row]*(self.extended_height - self.height))
             wall_height = self.height
 
         self.wall_height = wall_height
@@ -189,7 +197,7 @@ class BinaryBoard():
             s += " "
             for j in range(0, self.width):
                 if self.board[i][j]:
-					s += "X"
+                    s += "X"
                 else:
                     s += " "
             s += "\n"

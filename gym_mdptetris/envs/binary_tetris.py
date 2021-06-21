@@ -1,15 +1,14 @@
+
 import gym
 import os 
 import random
-import gym_mdptetris.envs.piece as piece
-import gym_mdptetris.envs.board as board
+import gym_mdptetris.envs.binary_piece as piece
+import gym_mdptetris.envs.binary_board as board
 import numpy as np
-cimport numpy as np
-from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
 
 from gym import Env, spaces
 
-cdef class CyTetris():
+class BinaryTetris():
     """
     A class which implements a standard game of Tetris for reinforcement learning
     conforming to the OpenAI Gym Env interface. 
@@ -22,13 +21,6 @@ cdef class CyTetris():
     of Scherrer and Thiery, http://mdptetris.gforge.inria.fr/doc/. 
     In addition method docstrings are adapted from OpenAI Gym source. 
     """
-
-    cdef public:
-        int nb_pieces
-        int max_piece_height
-        int current_piece
-        int board_width
-        int board_height
 
     def __init__(self, board_height=20, board_width=10, 
                 piece_set='pieces4.dat', allow_overflow=False, seed=12345):
@@ -52,15 +44,14 @@ cdef class CyTetris():
         for piece in self.pieces:
             for o in piece.orientations:
                 self.max_piece_height = max(self.max_piece_height, o.height)
-        #min_sizes = np.array([])
-        self.board = board.Board(max_piece_height=self.max_piece_height, 
+        self.board = board.BinaryBoard(max_piece_height=self.max_piece_height, 
                 width=board_width, height=board_height, allow_lines_after_overflow=allow_overflow)
         self.current_piece = 0
         random.seed(seed)
         # Observation is the representation of the current piece, concatenated with the board
         # TODO: restore observation space 
-		self.observation_space = spaces.Tuple(spaces.Discrete(self.nb_pieces), 
-			spaces.MultiBinary([self.board_height, self.board_width]))
+        self.observation_space = spaces.Tuple([spaces.Discrete(self.nb_pieces), 
+            spaces.MultiBinary([self.board_height, self.board_width])])
         #self.observation_space = spaces.Box(low=False, high=True, 
         #                                    shape=(self.board_height, self.board_width), dtype='bool')
 
@@ -68,7 +59,7 @@ cdef class CyTetris():
         # zero indexed (so less 1). 
         self.action_space = spaces.MultiDiscrete([4, self.board.width])
 
-    cdef clamp(self, int val, int min, int max):
+    def clamp(self, val, min, max):
         if val < min:
             return min
         elif val > max:
@@ -76,11 +67,11 @@ cdef class CyTetris():
         else:
             return val
 
-    cdef void new_piece(self):
+    def new_piece(self):
         # This delivers a dramatic improvement on speed
         self.current_piece = random.choice(range(self.nb_pieces))
 
-    cpdef step(self, action):
+    def step(self, action):
         """
         Run one step of the environment. 
 
@@ -95,11 +86,9 @@ cdef class CyTetris():
                 further step() calls are undefined
             info: auxiliary information 
         """
-        cdef int orientation
-        cdef int column
-        cdef bint done = False
+        done = False
         orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
-        column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        column = self.clamp(action[1], 0, self.board_width - self.pieces[self.current_piece].orientations[orientation].width)
         reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
         # This done check doesn't add much
         if self.board.wall_height > self.board.height:
@@ -111,7 +100,7 @@ cdef class CyTetris():
         # get_state adds 1s currently, could be faster? 
         return self._get_state(), reward, done, {}
     
-    cpdef reset(self):
+    def reset(self):
         """
         Reset the environment board and select a new random piece. 
 
@@ -122,24 +111,14 @@ cdef class CyTetris():
         self.new_piece()
         return self._get_state()
 
-    cpdef _get_state(self):
+    def _get_state(self):
         """
         Returns the current state of the environment as 1D numpy array.
         The state is represented by a concatenation of the current piece id
         and the board state. The board state is the underlying 1D numpy 
         integer array. For more details see the `Board` class. 
         """
-        # TODO: Translate this to a tuple of current piece and board array?
-        # Will also mean altering how the state space is defined
-        cdef int i 
-        cdef int j 
-        cdef np.ndarray a 
-        a = np.empty((self.board_height, self.board_width), dtype='bool')
-        for i in range(self.board_height - 1, -1 , -1):
-            for j in range(1, self.board_width + 1):
-                a[i][j - 1] = True if self.board.board[i] & brick_masks[j] else False
-        return (self.current_piece, a
-        #return np.concatenate(([self.current_piece], self.board.board))
+        return (self.current_piece, self.board.board)
 
     def render(self, mode='human'):
         print("Current piece:")
@@ -157,7 +136,7 @@ cdef class CyTetris():
         """
         random.seed(seed_value)
 
-    cdef _load_pieces(self, piece_file: str):
+    def _load_pieces(self, piece_file: str):
         """
         Load pieces from a data file. Comments in a file are marked by starting
         the line with '#'. The first non-comment line indicates the number
@@ -188,48 +167,8 @@ cdef class CyTetris():
             shape = ""
             for j in range(curr_line + 1, curr_line + height + 1):
                 shape += lines[j]
-            pieces.append(piece.Piece(nb_orientations, height, width, shape))
+            pieces.append(piece.BinaryPiece(nb_orientations, height, width, shape))
             curr_line += 1 + height 
 
         return pieces, nb_pieces
 
-class Tetris(CyTetris, Env):
-    def __init__(self, board_height=20, board_width=10, 
-                piece_set='pieces4.dat', allow_overflow=False, seed=12345):
-        super(Tetris, self).__init__(board_height=board_height, board_width=board_width,
-                piece_set=piece_set, allow_overflow=allow_overflow, seed=seed)
-
-cdef class CyMelaxTetris(CyTetris):
-    """
-    A class which implements a reduced board size game of Tetris for reinforcement learning.
-    """
-    cdef public:
-        int max_pieces
-        int piece_drops
-
-    def __init__(self, max_pieces=1000):
-        super(CyMelaxTetris, self).__init__(board_height=2, board_width=6, 
-                            piece_set='pieces_melax.dat', allow_overflow=True)
-        self.piece_drops = 0
-        self.max_pieces = max_pieces
-
-    def step(self, action):
-        self.piece_drops += 1
-        cdef bint done = False
-        orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
-        column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
-        reward = -self.board.drop_piece_overflow(self.pieces[self.current_piece].orientations[orientation], column)
-        if self.piece_drops > self.max_pieces:
-            done = True
-        self.new_piece()
-        return self._get_state(), reward, done, {}
-       
-    def reset(self):
-        self.board.reset()
-        self.new_piece()
-        self.piece_drops = 0
-        return self._get_state()
-
-class MelaxTetris(CyMelaxTetris, Env):
-    def __init__(self, max_pieces=1000):
-        super(MelaxTetris, self).__init__(max_pieces=max_pieces)

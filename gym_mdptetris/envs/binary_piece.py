@@ -21,7 +21,7 @@ class BinaryPieceOrientation():
 
     def __str__(self):
         s = ""
-        for i in range(self.height):
+        for i in range(self.height -1, -1, -1):
             for j in range(self.width):
                 if self.shape[i][j] == True:
                     s += "X"
