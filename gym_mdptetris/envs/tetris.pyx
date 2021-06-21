@@ -5,7 +5,6 @@ import gym_mdptetris.envs.piece as piece
 import gym_mdptetris.envs.board as board
 import numpy as np
 cimport numpy as np
-from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
 
 from gym import Env, spaces
 
@@ -52,20 +51,14 @@ cdef class CyTetris():
         for piece in self.pieces:
             for o in piece.orientations:
                 self.max_piece_height = max(self.max_piece_height, o.height)
-        #min_sizes = np.array([])
         self.board = board.Board(max_piece_height=self.max_piece_height, 
                 width=board_width, height=board_height, allow_lines_after_overflow=allow_overflow)
         self.current_piece = 0
-        random.seed(seed)
-        # Observation is the representation of the current piece, concatenated with the board
-        # TODO: restore observation space 
-		self.observation_space = spaces.Tuple(spaces.Discrete(self.nb_pieces), 
-			spaces.MultiBinary([self.board_height, self.board_width]))
-        #self.observation_space = spaces.Box(low=False, high=True, 
-        #                                    shape=(self.board_height, self.board_width), dtype='bool')
 
-        # Action space is the board width multiplied by the max number of piece orientations, 
-        # zero indexed (so less 1). 
+        random.seed(seed)
+        self.observation_space = spaces.Tuple([spaces.Discrete(self.nb_pieces), 
+            spaces.MultiBinary([self.board_height, self.board_width])])
+
         self.action_space = spaces.MultiDiscrete([4, self.board.width])
 
     cdef clamp(self, int val, int min, int max):
@@ -99,16 +92,11 @@ cdef class CyTetris():
         cdef int column
         cdef bint done = False
         orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
-        column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        column = self.clamp(action[1], 0, self.board_width - self.pieces[self.current_piece].orientations[orientation].width)
         reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
-        # This done check doesn't add much
         if self.board.wall_height > self.board.height:
             done = True
-        # Choosing a new piece adds about 2s, could this be faster? 
-        #self.current_piece = self.generator.choice(self.nb_pieces)
-        # VAST difference in speed with this method
         self.new_piece()
-        # get_state adds 1s currently, could be faster? 
         return self._get_state(), reward, done, {}
     
     cpdef reset(self):
@@ -118,7 +106,6 @@ cdef class CyTetris():
         :return: returns the current state
         """
         self.board.reset()
-        #self.current_piece = self.generator.choice(self.nb_pieces)
         self.new_piece()
         return self._get_state()
 
@@ -129,16 +116,8 @@ cdef class CyTetris():
         and the board state. The board state is the underlying 1D numpy 
         integer array. For more details see the `Board` class. 
         """
-        # TODO: Translate this to a tuple of current piece and board array?
-        # Will also mean altering how the state space is defined
-        cdef int i 
-        cdef int j 
-        cdef np.ndarray a 
-        a = np.empty((self.board_height, self.board_width), dtype='bool')
-        for i in range(self.board_height - 1, -1 , -1):
-            for j in range(1, self.board_width + 1):
-                a[i][j - 1] = True if self.board.board[i] & brick_masks[j] else False
-        return (self.current_piece, a
+        
+        return (self.current_piece, self.board.board)
         #return np.concatenate(([self.current_piece], self.board.board))
 
     def render(self, mode='human'):
@@ -217,7 +196,7 @@ cdef class CyMelaxTetris(CyTetris):
         self.piece_drops += 1
         cdef bint done = False
         orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
-        column = self.clamp(action[1] + 1, 1, self.board_width - self.pieces[self.current_piece].orientations[orientation].width + 1)
+        column = self.clamp(action[1], 0, self.board_width - self.pieces[self.current_piece].orientations[orientation].width)
         reward = -self.board.drop_piece_overflow(self.pieces[self.current_piece].orientations[orientation], column)
         if self.piece_drops > self.max_pieces:
             done = True

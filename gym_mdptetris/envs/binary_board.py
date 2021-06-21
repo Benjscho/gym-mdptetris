@@ -125,31 +125,27 @@ class BinaryBoard():
             of the board by. Used as a reward signal. 
         """
         if cancellable:
-            self.backup_board = self.board
+            self.backup_board = np.copy(self.board)
             self.previous_wall_height = self.wall_height
 
         piece_height = oriented_piece.height
-        destination = self.wall_height
-        removed_lines = 0 
+        destination = -1
+        removed_lines = 0
+        col_heights = self._top_cols()
 
-        collision = 0
-        while destination >= 0 and not collision:
-            current_row = destination
-            i = 0 
-            while i < piece_height and not collision:
-                collision = self.board[current_row] & (oriented_piece.shape[piece_height - i - 1] >> column)
-                i += 1
-                current_row += 1
-            if not collision:
-                destination -= 1
+        piece_heights = self.lowest_block(oriented_piece.shape)
+        for i in range(oriented_piece.width):
+            intersect = col_heights[column + i] - piece_heights[i]
+            destination = max(destination, intersect)
         destination += 1
+
+        for i in range(destination, destination + oriented_piece.height):
+            for j in range(column, column + oriented_piece.width):
+                self.board[i][j] |= oriented_piece.shape[i - destination][j - column]
 
         destination_top = destination + piece_height
 
-        wall_height = max(self.wall_height, destination_top)
-
-        for i in range(piece_height):
-            self.board[destination + i] |= oriented_piece.shape[piece_height - i - 1] >> column
+        wall_height = np.maximum(self.wall_height, destination_top)
 
         if destination_top <= self.height or self.allow_lines_after_overflow:
             i = 0
@@ -157,22 +153,23 @@ class BinaryBoard():
 
             while i < i_stop:
                 current_row = destination + i
-                if self.board[current_row] == self.full_row:
+                if np.all(self.board[current_row] == True):
                     j = current_row
-                    while j < wall_height -1 and self.board[j] != self.empty_row:
+                    while j < wall_height -1 and np.all(self.board[j] != False):
                         self.board[j] = self.board[j+1]
                         j += 1
-                    self.board[j] = self.empty_row
+                    self.board[j] = False
                     wall_height -= 1
                     removed_lines += 1
                     i_stop -= 1
                 else:
                     i += 1
+        self.wall_height = wall_height
         nb_over = 0
         if wall_height > self.height:
             nb_over = wall_height - self.height 
-            #self.board[:self.height] = self.board[nb_over:wall_height]
-            #self.board[self.height:] = array.array('H', [self.empty_row]*(self.extended_height - self.height))
+            self.board[:self.height] = self.board[nb_over:wall_height]
+            self.board[self.height:] = False
             wall_height = self.height
 
         self.wall_height = wall_height

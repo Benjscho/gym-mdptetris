@@ -1,5 +1,4 @@
-from cpython cimport array
-from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
+import numpy as np
 
 class PieceOrientation():
     """
@@ -22,9 +21,9 @@ class PieceOrientation():
 
     def __str__(self):
         s = ""
-        for i in range(self.height):
+        for i in range(self.height -1, -1, -1):
             for j in range(self.width):
-                if self.shape[i] & brick_masks[j]:
+                if self.shape[i][j] == True:
                     s += "X"
                 else:
                     s += " "
@@ -64,12 +63,12 @@ class Piece():
             raise ValueError("Shape cannot be empty")
         self.nb_orientations = nb_orientations
         self.orientations = []
-        piece = array.array('H', [0]*height)
+        piece = np.zeros((height, width), dtype='bool')
         nb_full_cells_on_rows = [0]*height
         i, j = 0, 0
         for c in shape.strip("\n"):
             if c == "X":
-                piece[i] |= brick_masks[j]
+                piece[i][j] = True
                 nb_full_cells_on_rows[i] += 1
                 j += 1
             elif c == "\n":
@@ -82,12 +81,12 @@ class Piece():
             tmp = height
             height = width
             width = tmp 
-            piece = array.array('H', [0]*height)
+            piece = np.zeros((height, width), dtype='bool')
             nb_full_cells_on_rows = [0]*height
             for i in range(height):
                 for j in range(width):
-                    if self.orientations[o-1].shape[width - 1 - j] & brick_masks[i]:
-                        piece[i] |= brick_masks[j]
+                    if self.orientations[o-1].shape[width - 1 - j][i] == True:
+                        piece[i][j] = True
                         nb_full_cells_on_rows[i] += 1
             self.orientations.append(PieceOrientation(width, height, piece, nb_full_cells_on_rows))
     

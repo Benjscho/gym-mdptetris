@@ -1,6 +1,6 @@
 import numpy as np 
 
-class BinaryPieceOrientation():
+class PieceOrientation():
     """
     Class defining an oriented piece. Pieces are represented as 1D arrays of
     integers. 
@@ -33,7 +33,7 @@ class BinaryPieceOrientation():
     def __eq__(self, other):
         return self.width == other.width and self.height == other.height and self.shape == other.shape
 
-class BinaryPiece():
+class Piece():
     """ 
     Class defining a piece as an array of PieceOrientations. 
     """
@@ -76,7 +76,7 @@ class BinaryPiece():
                 j = 0
             else:
                 j += 1
-        self.orientations.append(BinaryPieceOrientation(width, height, piece, nb_full_cells_on_rows))
+        self.orientations.append(PieceOrientation(width, height, piece, nb_full_cells_on_rows))
         for o in range(1, nb_orientations):
             tmp = height
             height = width
@@ -88,7 +88,7 @@ class BinaryPiece():
                     if self.orientations[o-1].shape[width - 1 - j][i] == True:
                         piece[i][j] = True
                         nb_full_cells_on_rows[i] += 1
-            self.orientations.append(BinaryPieceOrientation(width, height, piece, nb_full_cells_on_rows))
+            self.orientations.append(PieceOrientation(width, height, piece, nb_full_cells_on_rows))
     
     def __str__(self):
         return self.orientations[0].__str__()

@@ -90,14 +90,10 @@ class BinaryTetris():
         orientation = self.clamp(action[0], 0, self.pieces[self.current_piece].nb_orientations - 1)
         column = self.clamp(action[1], 0, self.board_width - self.pieces[self.current_piece].orientations[orientation].width)
         reward = self.board.drop_piece(self.pieces[self.current_piece].orientations[orientation], column)
-        # This done check doesn't add much
         if self.board.wall_height > self.board.height:
             done = True
-        # Choosing a new piece adds about 2s, could this be faster? 
-        #self.current_piece = self.generator.choice(self.nb_pieces)
-        # VAST difference in speed with this method
+        
         self.new_piece()
-        # get_state adds 1s currently, could be faster? 
         return self._get_state(), reward, done, {}
     
     def reset(self):

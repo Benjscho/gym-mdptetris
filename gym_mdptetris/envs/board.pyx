@@ -1,10 +1,7 @@
 import numpy as np
-from cpython cimport array 
-from gym_mdptetris.envs.brick_masks cimport brick_masks, brick_masks_inv
 
 cdef class CyBoard():
     cdef public: 
-        array.array board
         int width
         int height
         bint allow_lines_after_overflow
@@ -20,18 +17,34 @@ cdef class CyBoard():
         self.height = height
         self.allow_lines_after_overflow = allow_lines_after_overflow
         
-        self.full_row = 0xFFFF
-        self.empty_row = brick_masks[0] | brick_masks[width+1]
-        for i in range(width+2, 16):
-            self.empty_row |= brick_masks[i]
+        self.full_row = True
+        self.empty_row = False
 
         self.max_piece_height = max_piece_height
         
         self.extended_height = height + self.max_piece_height
 
-        self.board = array.array('H', [self.empty_row]*self.extended_height)
+        self.board = np.zeros((self.extended_height, self.width), dtype='bool')
         self.wall_height = 0 
     
+    def highest_block(self, arr, axis=0, invalid_val=-1):
+        """
+        Find the highest block in an array. Adapted from attribution code 
+        Attribution: https://stackoverflow.com/a/47269413/14354978
+        """
+        mask = arr != False
+        val = arr.shape[0] - np.flip(mask, axis=axis).argmax(axis=0) - 1
+        return np.where(mask.any(axis=axis), val, -1)
+
+    def lowest_block(self, arr, axis=0, invalid_val=-1):
+        """
+        Find the lowest block in an array. Used to find piece intersection.
+        Adapted from attribution code 
+        Attribution: https://stackoverflow.com/a/47269413/14354978
+        """
+        mask = arr != False 
+        return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+
     cpdef drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
         """
         Method to implement piece drop on a board. 
@@ -48,35 +61,32 @@ cdef class CyBoard():
             reward signal.
         """
         if cancellable:
-            self.backup_board = self.board.copy()
+            self.backup_board = np.copy(self.board)
             self.previous_wall_height = self.wall_height
 
         cdef int piece_height = oriented_piece.height
-        cdef int destination = self.wall_height
+        cdef int piece_width = oriented_piece.width
+        cdef int destination = -1
         cdef int removed_lines = 0 
+        
+        col_heights = self.highest_block(self.board[:, column:column+piece_width])
+        piece_heights = self.lowest_block(oriented_piece.shape)
 
-        cdef int collision = 0
-        # Descend the piece while there has been no collision and while the 
-        # piece is on the board.
-        cdef int current_row
         cdef int i 
-        while destination >= 0 and collision == 0:
-            current_row = destination
-            i = 0 
-            # Iterate through the piece height to detect collision
-            while i < piece_height and collision == 0:
-                collision = self.board[current_row] & (oriented_piece.shape[piece_height - i - 1] >> column)
-                i += 1
-                current_row += 1
-            if not collision:
-                destination -= 1
+        cdef int intersect
+        for i in range(piece_width):
+            intersect = col_heights[i] - piece_heights[i]
+            destination = np.maximum(destination, intersect)
+        
         destination += 1
 
-        cdef int destination_top = destination + piece_height
+        cdef int j
+        for i in range(destination, destination + piece_height):
+            for j in range(column, column + piece_width):
+                self.board[i][j] |= oriented_piece.shape[i - destination][j - column]
 
+        cdef int destination_top = destination + piece_height
         cdef int wall_height = np.maximum(self.wall_height, destination_top)
-        for i in range(piece_height):
-            self.board[destination + i] |= oriented_piece.shape[piece_height - i - 1] >> column
 
         if destination_top <= self.height or self.allow_lines_after_overflow:
             i = 0
@@ -84,15 +94,15 @@ cdef class CyBoard():
 
             while i < i_stop:
                 current_row = destination + i
-                if self.board[current_row] == self.full_row:
+                if np.all(self.board[current_row]) == True:
                     j = current_row
-                    while j < wall_height -1 and self.board[j] != self.empty_row:
+                    while j < wall_height -1 and np.all(self.board[j] != False):
                         self.board[j] = self.board[j+1]
                         j += 1
-                    self.board[j] = self.empty_row
+                    self.board[j] = False
                     wall_height -= 1
                     removed_lines += 1
-                    i_stop -= 1
+                    i_stop -= 1 
                 else:
                     i += 1
         self.wall_height = wall_height
@@ -102,7 +112,7 @@ cdef class CyBoard():
         """
         Reset the state of the board.
         """        
-        self.board = array.array('H', [self.empty_row]*self.extended_height)
+        self.board = np.zeros((self.extended_height, self.width), dtype='bool')
         self.wall_height = 0
     
     def drop_piece_overflow(self, oriented_piece, column: int, cancellable: bool = False):
@@ -124,31 +134,30 @@ cdef class CyBoard():
             of the board by. Used as a reward signal. 
         """
         if cancellable:
-            self.backup_board = self.board
+            self.backup_board = np.copy(self.board)
             self.previous_wall_height = self.wall_height
 
         cdef int piece_height = oriented_piece.height
-        cdef int destination = self.wall_height
+        cdef int piece_width = oriented_piece.width
+        cdef int destination = -1
         cdef int removed_lines = 0 
 
-        cdef int collision = 0
-        while destination >= 0 and not collision:
-            current_row = destination
-            i = 0 
-            while i < piece_height and not collision:
-                collision = self.board[current_row] & (oriented_piece.shape[piece_height - i - 1] >> column)
-                i += 1
-                current_row += 1
-            if not collision:
-                destination -= 1
+        col_heights = self.highest_block(self.board)
+        piece_heights = self.lowest_block(oriented_piece.shape)
+        cdef int i
+        cdef int intersect
+        for i in range(piece_width):
+            intersect = col_heights[column + i] - piece_heights[i]
+            destination = max(destination, intersect)
         destination += 1
 
+        cdef int j 
+        for i in range(destination, destination + piece_height):
+            for j in range(column, column + piece_width):
+                self.board[i][j] |= oriented_piece.shape[i - destination][j - column]
+
         cdef int destination_top = destination + piece_height
-
         cdef int wall_height = max(self.wall_height, destination_top)
-
-        for i in range(piece_height):
-            self.board[destination + i] |= oriented_piece.shape[piece_height - i - 1] >> column
 
         if destination_top <= self.height or self.allow_lines_after_overflow:
             i = 0
@@ -156,12 +165,12 @@ cdef class CyBoard():
 
             while i < i_stop:
                 current_row = destination + i
-                if self.board[current_row] == self.full_row:
+                if np.all(self.board[current_row]) == True:
                     j = current_row
-                    while j < wall_height -1 and self.board[j] != self.empty_row:
+                    while j < wall_height -1 and np.all(self.board[j] != False):
                         self.board[j] = self.board[j+1]
                         j += 1
-                    self.board[j] = self.empty_row
+                    self.board[j] = False
                     wall_height -= 1
                     removed_lines += 1
                     i_stop -= 1
@@ -171,7 +180,7 @@ cdef class CyBoard():
         if wall_height > self.height:
             nb_over = wall_height - self.height 
             self.board[:self.height] = self.board[nb_over:wall_height]
-            self.board[self.height:] = array.array('H', [self.empty_row]*(self.extended_height - self.height))
+            self.board[self.height:] = False
             wall_height = self.height
 
         self.wall_height = wall_height
@@ -194,8 +203,8 @@ cdef class CyBoard():
         s = ""
         for i in range(self.wall_height, self.height - 1, -1):
             s += " "
-            for j in range(1, self.width +1):
-                if self.board[i] & brick_masks[j]:
+            for j in range(self.width):
+                if self.board[i][j]:
                     s += "X"
                 else:
                     s += " "
@@ -203,8 +212,8 @@ cdef class CyBoard():
         
         for i in range(self.height - 1, -1, -1):
             s += "|"
-            for j in range(1, self.width+1):
-                if self.board[i] & brick_masks[j]:
+            for j in range(self.width):
+                if self.board[i][j]:
                     s += "X"
                 else:
                     s += "."
