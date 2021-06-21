@@ -132,11 +132,11 @@ cdef class CyTetris():
         cdef int i 
         cdef int j 
         cdef np.ndarray a 
-        a = np.empty((self.board_height, self.board_width), dtype=np.int16)
+        a = np.empty((self.board_height, self.board_width), dtype='bool')
         for i in range(self.board_height - 1, -1 , -1):
             for j in range(1, self.board_width + 1):
-                a[i][j - 1] = 1 if self.board.board[i] & brick_masks[j] else 0
-        return (self.current_piece, a)
+                a[i][j - 1] = True if self.board.board[i] & brick_masks[j] else False
+        return (self.current_piece, a
         #return np.concatenate(([self.current_piece], self.board.board))
 
     def render(self, mode='human'):
