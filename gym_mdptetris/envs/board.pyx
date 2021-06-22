@@ -16,14 +16,11 @@ cdef class CyBoard():
         self.width = width
         self.height = height
         self.allow_lines_after_overflow = allow_lines_after_overflow
-        
         self.full_row = True
         self.empty_row = False
-
         self.max_piece_height = max_piece_height
-        
         self.extended_height = height + self.max_piece_height
-
+        self.last_move_info = {}
         self.board = np.zeros((self.extended_height, self.width), dtype='bool')
         self.wall_height = 0 
     
@@ -64,6 +61,9 @@ cdef class CyBoard():
             self.backup_board = np.copy(self.board)
             self.previous_wall_height = self.wall_height
 
+        # Initialise last move info
+        self.last_move_info['eliminated_bricks_in_last_piece'] = 0
+
         cdef int piece_height = oriented_piece.height
         cdef int piece_width = oriented_piece.width
         cdef int destination = -1
@@ -101,10 +101,21 @@ cdef class CyBoard():
                         j += 1
                     self.board[j] = False
                     wall_height -= 1
+                    # Update last move info 
+                    self.last_move_info['eliminated_bricks_in_last_piece'] += oriented_piece.nb_full_cells_on_rows[i + removed_lines]
                     removed_lines += 1
                     i_stop -= 1 
                 else:
                     i += 1
+        
+        # Update Last move info for feature sets
+        self.last_move_info['landing_height_bottom'] = destination
+        self.last_move_info['landing_height_center'] = destination + ((piece_height - 1) / 2.0)
+        self.last_move_info['removed_lines'] = removed_lines
+        self.last_move_info['column'] = column
+        self.last_move_info['oriented_piece'] = oriented_piece
+
+
         self.wall_height = wall_height
         return removed_lines
     
@@ -113,6 +124,7 @@ cdef class CyBoard():
         Reset the state of the board.
         """        
         self.board = np.zeros((self.extended_height, self.width), dtype='bool')
+        self.last_move_info = {}
         self.wall_height = 0
     
     def drop_piece_overflow(self, oriented_piece, column: int, cancellable: bool = False):
