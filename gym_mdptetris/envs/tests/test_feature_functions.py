@@ -46,3 +46,25 @@ class featureTests(unittest.TestCase):
         self.board.drop_piece(self.o.orientations[0], 8)
         self.assertEqual(f.get_eroded_cells(self.board), 8)
         self.board.reset()
+
+    def test_row_transitions(self):
+        self.board.reset()
+        self.assertEqual(f.get_row_transitions(self.board), 40)
+        self.board.drop_piece(self.o.orientations[0], 0)
+        self.board.drop_piece(self.o.orientations[0], 2)
+        self.board.drop_piece(self.o.orientations[0], 6)
+        self.assertEqual(f.get_row_transitions(self.board), 44)
+        self.board.drop_piece(self.o.orientations[0], 4)
+        self.assertEqual(f.get_row_transitions(self.board), 40)
+        self.board.reset()
+
+    def test_col_transitions(self):
+        self.board.reset()
+        self.assertEqual(f.get_col_transitions(self.board), 10)
+        self.board.drop_piece(self.l.orientations[0], 0)
+        self.board.drop_piece(self.l.orientations[0], 2)
+        self.board.drop_piece(self.l.orientations[0], 6)
+        self.assertEqual(f.get_col_transitions(self.board), 16)
+        self.board.drop_piece(self.o.orientations[0], 4)
+        self.assertEqual(f.get_col_transitions(self.board), 16)
+        self.board.reset()
