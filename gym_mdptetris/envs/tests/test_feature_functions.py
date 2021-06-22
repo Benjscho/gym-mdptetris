@@ -78,3 +78,16 @@ class featureTests(unittest.TestCase):
         self.board.drop_piece(self.o.orientations[0], 4)
         self.assertEqual(f.get_holes(self.board), 6)
         self.board.reset()
+
+    def test_well_sums(self):
+        self.board.reset()
+        self.assertEqual(f.get_well_sums(self.board), 0)
+        self.board.drop_piece(self.l.orientations[0], 0)
+        self.board.drop_piece(self.l.orientations[0], 2)
+        self.board.drop_piece(self.l.orientations[0], 6)
+        self.assertEqual(f.get_well_sums(self.board), 2)
+        self.board.drop_piece(self.o.orientations[0], 4)
+        self.assertEqual(f.get_well_sums(self.board), 4)
+        self.board.drop_piece(self.l.orientations[0], 8)
+        self.assertEqual(f.get_well_sums(self.board), 8)
+        self.board.reset()
