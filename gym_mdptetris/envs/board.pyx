@@ -81,10 +81,7 @@ cdef class CyBoard():
         
         destination += 1
 
-        cdef int j
-        for i in range(destination, destination + piece_height):
-            for j in range(column, column + piece_width):
-                self.board[i][j] |= oriented_piece.shape[i - destination][j - column]
+        self.board[destination:destination+piece_height,column:column+piece_width] |= oriented_piece.shape
 
         cdef int destination_top = destination + piece_height
         cdef int wall_height = np.maximum(self.wall_height, destination_top)
