@@ -57,14 +57,10 @@ def get_col_transitions(board: board.Board) -> float:
 def hole_helper(arr: np.ndarray):
     """
     Helper function that sums the False values in a row that precede
-    at least one True value. Written by me but also posted 
-    here: https://stackoverflow.com/a/68087283/14354978
+    at least one True value. 
+    Attribution: https://stackoverflow.com/a/68087910/14354978
     """
-    mask = np.zeros(arr.shape, dtype='bool')
-    up_to = board.highest_block(arr, axis=1, invalid_val=0)
-    for i, m in enumerate(up_to):
-        mask[i, :m] = True
-    return (arr[mask] == False).sum()
+    return np.max((~arr).cumsum(axis = 1) * arr, axis = 1).sum()
 
 def get_holes(board: board.Board) -> float:
     return hole_helper(board.board.T)
