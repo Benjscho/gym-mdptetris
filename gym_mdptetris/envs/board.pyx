@@ -1,5 +1,24 @@
 import numpy as np
 
+# Helper functions
+def highest_block(arr: np.ndarray, axis=0, invalid_val=-1):
+    """
+    Find the highest block in an array. Adapted from attribution code 
+    Attribution: https://stackoverflow.com/a/47269413/14354978
+    """
+    mask = arr != False
+    val = arr.shape[axis] - np.flip(mask, axis=axis).argmax(axis=axis) - 1
+    return np.where(mask.any(axis=axis), val, invalid_val)
+
+def lowest_block(arr: np.ndarray, axis=0, invalid_val=-1):
+    """
+    Find the lowest block in an array. Used to find piece intersection.
+    Adapted from attribution code 
+    Attribution: https://stackoverflow.com/a/47269413/14354978
+    """
+    mask = arr != False 
+    return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
+    
 cdef class CyBoard():
     cdef public: 
         int width
@@ -24,24 +43,6 @@ cdef class CyBoard():
         self.board = np.zeros((self.extended_height, self.width), dtype='bool')
         self.wall_height = 0 
     
-    def highest_block(self, arr, axis=0, invalid_val=-1):
-        """
-        Find the highest block in an array. Adapted from attribution code 
-        Attribution: https://stackoverflow.com/a/47269413/14354978
-        """
-        mask = arr != False
-        val = arr.shape[0] - np.flip(mask, axis=axis).argmax(axis=0) - 1
-        return np.where(mask.any(axis=axis), val, -1)
-
-    def lowest_block(self, arr, axis=0, invalid_val=-1):
-        """
-        Find the lowest block in an array. Used to find piece intersection.
-        Adapted from attribution code 
-        Attribution: https://stackoverflow.com/a/47269413/14354978
-        """
-        mask = arr != False 
-        return np.where(mask.any(axis=axis), mask.argmax(axis=axis), invalid_val)
-
     cpdef drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
         """
         Method to implement piece drop on a board. 
@@ -69,8 +70,8 @@ cdef class CyBoard():
         cdef int destination = -1
         cdef int removed_lines = 0 
         
-        col_heights = self.highest_block(self.board[:, column:column+piece_width])
-        piece_heights = self.lowest_block(oriented_piece.shape)
+        col_heights = highest_block(self.board[:, column:column+piece_width])
+        piece_heights = lowest_block(oriented_piece.shape)
 
         cdef int i 
         cdef int intersect
@@ -154,8 +155,8 @@ cdef class CyBoard():
         cdef int destination = -1
         cdef int removed_lines = 0 
 
-        col_heights = self.highest_block(self.board)
-        piece_heights = self.lowest_block(oriented_piece.shape)
+        col_heights = highest_block(self.board)
+        piece_heights = lowest_block(oriented_piece.shape)
         cdef int i
         cdef int intersect
         for i in range(piece_width):

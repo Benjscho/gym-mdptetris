@@ -24,7 +24,6 @@ class featureTests(unittest.TestCase):
 
     def test_landing_height(self):
         self.board.reset()
-        self.assertEqual(f.get_landing_height(self.board), 0)
         self.board.drop_piece(self.l.orientations[0], 0)
         self.assertEqual(f.get_landing_height(self.board), 1)
         self.board.drop_piece(self.l.orientations[0], 0)
@@ -67,4 +66,15 @@ class featureTests(unittest.TestCase):
         self.assertEqual(f.get_col_transitions(self.board), 16)
         self.board.drop_piece(self.o.orientations[0], 4)
         self.assertEqual(f.get_col_transitions(self.board), 16)
+        self.board.reset()
+
+    def test_holes(self):
+        self.board.reset()
+        self.assertEqual(f.get_holes(self.board), 0)
+        self.board.drop_piece(self.l.orientations[0], 0)
+        self.board.drop_piece(self.l.orientations[0], 2)
+        self.board.drop_piece(self.l.orientations[0], 6)
+        self.assertEqual(f.get_holes(self.board), 6)
+        self.board.drop_piece(self.o.orientations[0], 4)
+        self.assertEqual(f.get_holes(self.board), 6)
         self.board.reset()

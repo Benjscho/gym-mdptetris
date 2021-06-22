@@ -41,5 +41,21 @@ def get_col_transitions(board: board.Board) -> float:
     temp[1:,:] = board.board[:board.height,]
     return np.diff(temp.T).sum()
 
+def last_nonzero(arr: np.ndarray, axis=0, invalid_val=-1):
+    """
+    Find the highest block in an array. Adapted from attribution code 
+    Attribution: https://stackoverflow.com/a/47269413/14354978
+    """
+    mask = arr != False
+    val = arr.shape[axis] - np.flip(mask, axis=axis).argmax(axis=axis) - 1
+    return np.where(mask.any(axis=axis), val, invalid_val)
+
+def hole_helper(arr: np.ndarray):
+    mask = np.zeros(arr.shape, dtype='bool')
+    up_to = board.highest_block(arr, axis=1, invalid_val=0)
+    for i, m in enumerate(up_to):
+        mask[i, :m] = True
+    return (arr[mask] == False).sum()
+
 def get_holes(board: board.Board) -> float:
-    pass
+    return hole_helper(board.board.T)
