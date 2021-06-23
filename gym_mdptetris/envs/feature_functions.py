@@ -1,6 +1,14 @@
 import numpy as np
 import gym_mdptetris.envs.board as board
 
+def get_dellacherie_funcs() -> list:
+    return [get_landing_height, 
+        get_eroded_cells, 
+        get_row_transitions,
+        get_col_transitions,
+        get_holes,
+        get_well_sums]
+
 def get_landing_height(board: board.Board) -> float:
     """
     Feature 1 from the Dellacherie set. Returns the height the last
