@@ -29,7 +29,9 @@ def get_eroded_cells(board: board.Board) -> float:
 
 def get_row_transitions(board: board.Board) -> float:
     """
-    Gets the number of row transitions on the board. 
+    Feature 3 from the Dellacherie set. Gets the number of row transitions 
+    on the board. Moving across each row count the transitions from empty
+    to full.
 
     Side walls are considered full cells, so empty rows have two transitions.
 
@@ -42,7 +44,9 @@ def get_row_transitions(board: board.Board) -> float:
 
 def get_col_transitions(board: board.Board) -> float:
     """
-    Get number of column transitions on the board.
+    Feature 4 from the Dellacherie set. Get number of column transitions 
+    on the board. Moving through each column, count the transitions from
+    empty to full.
 
     The board floor is considered a full cell, so an empty column has 
     one transition. 
@@ -59,14 +63,27 @@ def hole_helper(arr: np.ndarray):
     Helper function that sums the False values in a row that precede
     at least one True value. 
     Attribution: https://stackoverflow.com/a/68087910/14354978
+
+    :param arr: A boolean or binary numpy array.
+    :return: The number of False values in each row that precede at least 
+        one True value.
     """
     return np.max((~arr).cumsum(axis = 1) * arr, axis = 1).sum()
 
 def get_holes(board: board.Board) -> float:
+    """
+    Feature 5 from the Dellacherie set. Get the number of holes on the 
+    board. A hole is an empty cell with at least one full cell above it
+    in the same column.
+
+    :param board: The current board state
+    :return: The number of holes in the board.
+    """
     return hole_helper(board.board.T)
 
 def get_well_sums(board: board.Board) -> float:
     """
+    Feature 6 in the Dellacherie set. Cumulatively sum well cells.
     A well cell is an empty cell where the left and right cell are both full,
     and the cell above it is empty.
 
@@ -115,5 +132,12 @@ def get_well_sums(board: board.Board) -> float:
     return (np.roll(temp, 1, axis=1) & np.roll(temp, -1, axis=1) & ~temp & ~np.roll(temp, -1, axis=0)).sum()
 
 def get_wall_height(board: board.Board) -> float:
+    """
+    Return the wall height (index of the lowest empty row). From the 
+    Bertsekas set. 
+
+    :param board: the current board state
+    :return: the wall height.
+    """
     return board.wall_height
 
