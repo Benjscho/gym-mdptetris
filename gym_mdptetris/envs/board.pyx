@@ -94,7 +94,7 @@ cdef class CyBoard():
                 current_row = destination + i
                 if np.all(self.board[current_row]) == True:
                     j = current_row
-                    while j < wall_height -1 and np.all(self.board[j] != False):
+                    while j < wall_height - 1 and np.any(self.board[j]):
                         self.board[j] = self.board[j+1]
                         j += 1
                     self.board[j] = False
@@ -161,10 +161,7 @@ cdef class CyBoard():
             destination = max(destination, intersect)
         destination += 1
 
-        cdef int j 
-        for i in range(destination, destination + piece_height):
-            for j in range(column, column + piece_width):
-                self.board[i][j] |= oriented_piece.shape[i - destination][j - column]
+        self.board[destination:destination+piece_height,column:column+piece_width] |= oriented_piece.shape
 
         cdef int destination_top = destination + piece_height
         cdef int wall_height = max(self.wall_height, destination_top)
@@ -177,7 +174,7 @@ cdef class CyBoard():
                 current_row = destination + i
                 if np.all(self.board[current_row]) == True:
                     j = current_row
-                    while j < wall_height -1 and np.all(self.board[j] != False):
+                    while j < wall_height - 1 and np.any(self.board[j]):
                         self.board[j] = self.board[j+1]
                         j += 1
                     self.board[j] = False
