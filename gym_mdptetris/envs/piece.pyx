@@ -101,4 +101,41 @@ class Piece():
                 return False
         return True
 
+cpdef load_pieces(piece_file: str):
+    """
+    Load pieces from a data file. Comments in a file are marked by starting
+    the line with '#'. The first non-comment line indicates the number
+    of pieces in the file. Following non-comment lines identify pieces 
+    by their number of orientations, height, and width, then describe
+    their shape with a multiline string where 'X' represents a block and 
+    ' ' an empty space. See data/ for examples. 
 
+    TODO: Change parsing of pieces to more robust data format, JSON? 
+
+    :param piece_file: path to data file containing pieces.
+    :return
+        pieces: A list of Piece objects
+        nb_pieces: The number of pieces.
+    """
+    f = open(piece_file, "rt")
+    pieces = [] 
+    
+    lines = f.readlines()
+    i = 0
+    while i < len(lines):
+        if lines[i][0] == '#':
+            del lines[i]
+        else:
+            i += 1 
+    nb_pieces = int(lines[0])
+
+    curr_line = 1 
+    for i in range(nb_pieces):
+        nb_orientations, height, width = map(int, lines[curr_line].split())
+        shape = ""
+        for j in range(curr_line + 1, curr_line + height + 1):
+            shape += lines[j]
+        pieces.append(Piece(nb_orientations, height, width, shape))
+        curr_line += 1 + height 
+
+    return pieces, nb_pieces
