@@ -66,11 +66,53 @@ def get_holes(board: board.Board) -> float:
     return hole_helper(board.board.T)
 
 def get_well_sums(board: board.Board) -> float:
-    temp = np.ones((board.height, board.width + 4), dtype='bool')
-    temp[:,-1:] = False
-    temp[:,:1] = False
-    temp[:,2:-2] = board.board[:board.height,]
-    return (np.roll(temp, 1) & np.roll(temp, -1) & ~temp).sum()
+    """
+    A well cell is an empty cell where the left and right cell are both full,
+    and the cell above it is empty.
+
+    For example:
+    |..........|
+    |..........|
+    |..........|
+    |..........|
+    |...X......|
+    |...X.XX...|
+    |..XX.X....|
+    |XXXX.XXXXX|
+    |X.X.XXX.X.|
+    |X.X.XXX.X.|
+
+    This board has 7 well cells as indicated below with 'o'
+
+    |..........|
+    |..........|
+    |..........|
+    |..........|
+    |...X......|
+    |...XoXX...|
+    |..XXoX....|
+    |XXXXoXXXXX|
+    |X.X.XXX.X.|
+    |XoXoXXXoXo|
+
+    This is calculated using the `np.roll()` function to shift the array
+    one column left, one column right, and one row down. The result of 
+    these are then AND-ed with the complement of the cell to indicate
+    if the cell is a well, before summing.
+
+    To indicate that board walls count for wells extra columns are added either
+    side, and a row of false is added at the bottom to indicate well cells 
+    at the top row count. 
+
+    :param board: The current board state
+    :return: The sum total of well cells on the board.
+    """
+    temp = np.ones((board.height + 1, board.width + 2), dtype='bool')
+    #temp[:,-1:] = False
+    #temp[:,:1] = False
+    temp[:1] = False
+    temp[1:,1:-1] = board.board[:board.height,]
+    return (np.roll(temp, 1, axis=1) & np.roll(temp, -1, axis=1) & ~temp & ~np.roll(temp, -1, axis=0)).sum()
 
 def get_wall_height(board: board.Board) -> float:
     return board.wall_height
