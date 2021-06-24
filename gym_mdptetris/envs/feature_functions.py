@@ -76,7 +76,7 @@ def hole_helper(arr: np.ndarray):
     :return: The number of False values in each row that precede at least 
         one True value.
     """
-    return np.max((~arr).cumsum(axis = 1) * arr, axis = 1).sum()
+    return np.max((~arr).cumsum(axis = 0) * arr, axis = 0).sum()
 
 def get_holes(board: board.Board) -> float:
     """
@@ -87,7 +87,7 @@ def get_holes(board: board.Board) -> float:
     :param board: The current board state
     :return: The number of holes in the board.
     """
-    return hole_helper(board.board.T)
+    return hole_helper(board.board)
 
 def get_well_sums(board: board.Board) -> float:
     """
