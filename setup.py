@@ -20,7 +20,7 @@ if args.count("build_ext") > 0 and args.count("--inplace") == 0:
     sys.argv.insert(sys.argv.index("build_ext")+1, "--inplace")
 
 setup(name='gym_mdptetris',
-    version='0.0.2',
+    version='0.1.0',
     install_requires=['gym'],
     author="Ben Schofield",
     license='MIT',

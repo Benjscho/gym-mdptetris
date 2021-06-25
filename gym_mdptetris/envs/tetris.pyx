@@ -30,7 +30,8 @@ cdef class CyTetris():
         int board_height
 
     def __init__(self, board_height=20, board_width=10, 
-                piece_set='pieces4.dat', allow_overflow=False, seed=12345):
+                piece_set='pieces4.dat', allow_overflow=False, seed=12345,
+                flat_env=False):
         """
         Constructor. Creates a board and setup for a gym environment. 
         reset() must be called before interacting with the environment.
@@ -48,6 +49,7 @@ cdef class CyTetris():
         pieces_path = os.path.dirname(os.path.abspath(__file__)) + '/data/' + piece_set
         self.pieces, self.nb_pieces = piece.load_pieces(pieces_path)
         self.max_piece_height = 0
+        self.flat_env = flat_env
         for p in self.pieces:
             for o in p.orientations:
                 self.max_piece_height = max(self.max_piece_height, o.height)
@@ -56,8 +58,10 @@ cdef class CyTetris():
         self.current_piece = 0
 
         random.seed(seed)
-        self.observation_space = spaces.Tuple([spaces.Discrete(self.nb_pieces), 
-            spaces.MultiBinary([self.board_height, self.board_width])])
+        if flat_env:
+            self.observation_space = spaces.MultiBinary(self.board.extended_height * self.board_width)
+        else:
+            self.observation_space = spaces.MultiBinary([self.board.extended_height, self.board_width])
 
         self.action_space = spaces.MultiDiscrete([4, self.board.width])
 
@@ -116,9 +120,13 @@ cdef class CyTetris():
         and the board state. The board state is the underlying 1D numpy 
         integer array. For more details see the `Board` class. 
         """
-        
-        return (self.current_piece, self.board.board)
-        #return np.concatenate(([self.current_piece], self.board.board))
+        temp = np.copy(self.board.board)
+        temp[-4:, :] = False
+        temp[-self.pieces[self.current_piece].orientations[0].height:,:self.pieces[self.current_piece].orientations[0].width] = self.pieces[self.current_piece].orientations[0].shape
+        if self.flat_env:
+            return temp.flatten()
+        else:
+            return temp
 
     def render(self, mode='human'):
         print("Current piece:")
@@ -139,10 +147,15 @@ cdef class CyTetris():
     
 
 class Tetris(CyTetris, Env):
-    def __init__(self, board_height=20, board_width=10, 
-                piece_set='pieces4.dat', allow_overflow=False, seed=12345):
+    def __init__(self, board_height=20, board_width=10, piece_set='pieces4.dat', 
+                allow_overflow=False, seed=12345, flat_env=False):
         super(Tetris, self).__init__(board_height=board_height, board_width=board_width,
-                piece_set=piece_set, allow_overflow=allow_overflow, seed=seed)
+                piece_set=piece_set, allow_overflow=allow_overflow, seed=seed, 
+                flat_env=flat_env)
+
+class TetrisFlat(Tetris):
+    def __init__(self):
+        super(TetrisFlat, self).__init__(flat_env=True)
 
 cdef class CyMelaxTetris(CyTetris):
     """
@@ -152,9 +165,9 @@ cdef class CyMelaxTetris(CyTetris):
         int max_pieces
         int piece_drops
 
-    def __init__(self, max_pieces=1000):
+    def __init__(self, max_pieces=1000, flat_env=True):
         super(CyMelaxTetris, self).__init__(board_height=2, board_width=6, 
-                            piece_set='pieces_melax.dat', allow_overflow=True)
+                piece_set='pieces_melax.dat', allow_overflow=True, flat_env=flat_env)
         self.piece_drops = 0
         self.max_pieces = max_pieces
 
@@ -176,5 +189,9 @@ cdef class CyMelaxTetris(CyTetris):
         return self._get_state()
 
 class MelaxTetris(CyMelaxTetris, Env):
-    def __init__(self, max_pieces=1000):
-        super(MelaxTetris, self).__init__(max_pieces=max_pieces)
+    def __init__(self, max_pieces=1000, flat_env=False):
+        super(MelaxTetris, self).__init__(max_pieces=max_pieces, flat_env=flat_env)
+
+class MelaxTetrisFlat(MelaxTetris):
+    def __init__(self):
+        super(MelaxTetrisFlat, self).__init__(flat_env=True)
