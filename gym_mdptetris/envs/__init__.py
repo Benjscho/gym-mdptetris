@@ -1,1 +1,1 @@
-from gym_mdptetris.envs.tetris import Tetris, MelaxTetris
+from gym_mdptetris.envs.tetris import Tetris, TetrisFlat, TetrisHeuristic, MelaxTetris, MelaxTetrisFlat, MelaxTetrisHeuristic

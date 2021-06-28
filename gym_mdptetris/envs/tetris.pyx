@@ -59,10 +59,7 @@ cdef class CyTetris():
         self.current_piece = 0
 
         random.seed(seed)
-        if flat_env:
-            self.observation_space = spaces.MultiBinary(self.board.extended_height * self.board_width)
-        else:
-            self.observation_space = spaces.MultiBinary([self.board.extended_height, self.board_width])
+        self.observation_space = self.get_observation_space()
 
         self.action_space = spaces.MultiDiscrete([4, self.board.width])
 
@@ -122,6 +119,9 @@ cdef class CyTetris():
         self.new_piece()
         return self._get_state()
 
+    def get_observation_space(self):
+        spaces.MultiBinary([self.board.extended_height, self.board_width])
+
     cpdef _get_state(self):
         """
         Returns the current state of the environment as 1D numpy array.
@@ -166,12 +166,18 @@ class TetrisFlat(Tetris):
     def __init__(self):
         super(TetrisFlat, self).__init__(flat_env=True)
 
+    def get_observation_space(self):
+        return spaces.MultiBinary(self.board.extended_height * self.board_width)
+
 class TetrisHeuristic(Tetris):
     def __init__(self):
         super(TetrisHeuristic, self).__init__()
 
     def _get_state(self):
         return self.get_dellacherie_state()
+
+    def get_observation_space(self):
+        return spaces.Box(low=-100, high=100, shape=(6,), dtype=np.float)
 
 cdef class CyMelaxTetris(CyTetris):
     """
@@ -212,9 +218,15 @@ class MelaxTetrisFlat(MelaxTetris):
     def __init__(self):
         super(MelaxTetrisFlat, self).__init__(flat_env=True)
 
+    def get_observation_space(self):
+        return spaces.MultiBinary(self.board.extended_height * self.board_width)
+
 class MelaxTetrisHeuristic(MelaxTetris):
     def __init__(self):
         super(MelaxTetrisHeuristic, self).__init__()
 
     def _get_state(self):
         return self.get_dellacherie_state()
+
+    def get_observation_space(self):
+        return spaces.Box(low=-100, high=100, shape=(6,), dtype=np.float)
