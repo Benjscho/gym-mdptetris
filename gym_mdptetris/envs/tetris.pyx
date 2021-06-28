@@ -3,6 +3,7 @@ import os
 import random
 import gym_mdptetris.envs.piece as piece
 import gym_mdptetris.envs.board as board
+import gym_mdptetris.envs.feature_functions as ff
 import numpy as np
 cimport numpy as np
 
@@ -102,6 +103,14 @@ cdef class CyTetris():
             done = True
         self.new_piece()
         return self._get_state(), reward, done, {}
+
+    cpdef get_dellacherie_state(self):
+        cdef np.ndarray res 
+        cdef int i 
+        res = np.empty((6), dtype='double')
+        for i, f in enumerate(ff.get_dellacherie_funcs()):
+            res[i] = f(self.board)
+        return res 
     
     cpdef reset(self):
         """
@@ -157,6 +166,13 @@ class TetrisFlat(Tetris):
     def __init__(self):
         super(TetrisFlat, self).__init__(flat_env=True)
 
+class TetrisHeuristic(Tetris):
+    def __init__(self):
+        super(TetrisHeuristic, self).__init__()
+
+    def _get_state(self):
+        return self.get_dellacherie_state()
+
 cdef class CyMelaxTetris(CyTetris):
     """
     A class which implements a reduced board size game of Tetris for reinforcement learning.
@@ -195,3 +211,10 @@ class MelaxTetris(CyMelaxTetris, Env):
 class MelaxTetrisFlat(MelaxTetris):
     def __init__(self):
         super(MelaxTetrisFlat, self).__init__(flat_env=True)
+
+class MelaxTetrisHeuristic(MelaxTetris):
+    def __init__(self):
+        super(MelaxTetrisHeuristic, self).__init__()
+
+    def _get_state(self):
+        return self.get_dellacherie_state()

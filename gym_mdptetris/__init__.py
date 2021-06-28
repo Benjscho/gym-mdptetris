@@ -11,6 +11,11 @@ register(
 )
 
 register(
+    id='mdptetris-v2',
+    entry_point='gym_mdptetris.envs:TetrisHeuristic'
+)
+
+register(
     id='melaxtetris-v0',
     entry_point='gym_mdptetris.envs:MelaxTetris'
 )
@@ -18,4 +23,9 @@ register(
 register(
     id='melaxtetris-v1',
     entry_point='gym_mdptetris.envs:MelaxTetrisFlat'
+)
+
+register(
+    id='melaxtetris-v2',
+    entry_point='gym_mdptetris.envs:MelaxTetrisHeuristic'
 )
