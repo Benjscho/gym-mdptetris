@@ -24,4 +24,5 @@ setup(name='gym_mdptetris',
     install_requires=['gym'],
     author="Ben Schofield",
     license='MIT',
+    packages=['gym_mdptetris','gym_mdptetris.envs'],
     ext_modules=cythonize([Extension("*.pyx", ['gym_mdptetris/envs/*.pyx'], include_dirs=[numpy.get_include()])]))
