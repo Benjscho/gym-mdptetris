@@ -43,7 +43,7 @@ cdef class CyBoard():
         self.board = np.zeros((self.extended_height, self.width), dtype='bool')
         self.wall_height = 0 
     
-    cpdef drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
+    cpdef int drop_piece(self, oriented_piece, column: int, cancellable: bool = False):
         """
         Method to implement piece drop on a board. 
 
@@ -125,7 +125,7 @@ cdef class CyBoard():
         self.last_move_info = {}
         self.wall_height = 0
     
-    def drop_piece_overflow(self, oriented_piece, column: int, cancellable: bool = False):
+    def drop_piece_overflow(self, oriented_piece, column: int, cancellable: bool = False) -> int:
         """
         Method to implement piece drop on a board. If the board overflows as
         a result, remove rows from the bottom up until the board is within 
@@ -193,17 +193,14 @@ cdef class CyBoard():
         self.wall_height = wall_height
         return nb_over
 
-    def cancel_last_move(self):
+    def cancel_last_move(self) -> None:
         """
         Uses board backup to cancel the last move. Used in linear evaluation.
         """
         self.board = self.backup_board
         self.wall_height = self.previous_wall_height
         
-    def get_column_height(self, column):
-        pass
-
-    def __str__(self):
+    def __str__(self) -> str:
         """
         :return: returns board state as a printable string. 
         """
@@ -228,6 +225,16 @@ cdef class CyBoard():
         return s
 
 class Board(CyBoard):
+    """
+    Class that implements a Tetris board. 
+
+    The board state is stored as an m x n numpy boolean array. 
+
+    :param max_piece_height: the maximum height of a piece to be used with the board
+    :param width: the width of the board
+    :param height: the height of the board
+    :param allow_lines_after_overflow: set defined behaviour for when lines overflow board
+    """
     def __init__(self, max_piece_height=4, width=10, height=20, 
                 allow_lines_after_overflow=False):
         super(Board, self).__init__(max_piece_height=max_piece_height, 

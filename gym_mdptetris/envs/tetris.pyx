@@ -152,12 +152,34 @@ cdef class CyTetris():
         :param seed_value: new seed value.
         """
         random.seed(seed_value)
-
     
 
 class Tetris(CyTetris, Env):
+    """
+    A class which implements a standard game of Tetris for reinforcement learning
+    conforming to the OpenAI Gym Env interface. Extends the Cython Extension
+    Type to enable direct Python access. 
+
+    A board is instantiated and a piece set is loaded. The environment 
+    implements a piece drop version of Tetris in contrast to the standard
+    trajectory based implementation.
+
+    Attribution: this environment is inspired by the MDPTetris environment
+    of Scherrer and Thiery, http://mdptetris.gforge.inria.fr/doc/. 
+    In addition method docstrings are adapted from OpenAI Gym source. 
+
+    :param board_height: int, the height of the Tetris board.
+    :param board_width: int, the width of the board.
+    :param piece_set: str, path of the data file containing the pieces to be loaded.
+    :param allow_overflow: bool, indicating if lines can overflow.
+    :param seed: int, seed for random generator.
+    """
     def __init__(self, board_height=20, board_width=10, piece_set='pieces4.dat', 
                 allow_overflow=False, seed=12345, flat_env=False):
+        """
+        Constructor. Creates a board and setup for a gym environment. 
+        reset() must be called before interacting with the environment.
+        """
         super(Tetris, self).__init__(board_height=board_height, board_width=board_width,
                 piece_set=piece_set, allow_overflow=allow_overflow, seed=seed, 
                 flat_env=flat_env)
