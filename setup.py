@@ -19,6 +19,12 @@ if "cleanall" in args:
 if args.count("build_ext") > 0 and args.count("--inplace") == 0:
     sys.argv.insert(sys.argv.index("build_ext")+1, "--inplace")
 
+# Set value for coverage from args. Should be disabled by default for distribution
+coverage = 0
+if args.count("coverage") > 0:
+    coverage = 1
+    sys.argv.remove("coverage")
+
 setup(name='gym_mdptetris',
     version='0.1.0',
     install_requires=['gym'],
@@ -27,4 +33,11 @@ setup(name='gym_mdptetris',
     zip_safe=False,
     packages=['gym_mdptetris',
             'gym_mdptetris.envs'],
-    ext_modules=cythonize([Extension("*.pyx", ['gym_mdptetris/envs/*.pyx'], include_dirs=[numpy.get_include()])]))
+    ext_modules=cythonize([
+        Extension("*.pyx", 
+                ['gym_mdptetris/envs/*.pyx'],
+                include_dirs=[numpy.get_include()]
+                # Trace required for Cython coverage checks, disabled for distribution
+                ,define_macros=[('CYTHON_TRACE', f'{coverage}')]
+                )
+        ]))

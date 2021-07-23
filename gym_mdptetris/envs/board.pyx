@@ -1,3 +1,5 @@
+# cython: linetrace=True
+
 import numpy as np
 
 # Helper functions

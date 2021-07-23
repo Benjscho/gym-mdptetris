@@ -1,3 +1,5 @@
+# cython: linetrace=True
+
 import gym
 import os 
 import random
