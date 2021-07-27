@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 import gym_mdptetris.envs.linear_game as l
 
 class linearTests(unittest.TestCase):
@@ -13,5 +14,5 @@ class linearTests(unittest.TestCase):
         print(self.l_g.get_dellacherie_features())
     
     def test_play_game(self):
-        #self.l_g.play_game()
-        pass
+        self.l_g.weights = np.array([0,0,0,0,0,0])
+        self.l_g.play_game()
