@@ -8,6 +8,7 @@ class TetrisTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Run expensive functions that need to be done before all other class tests"""
+        print("debugging")
         cls._env = Tetris()
         
     def test_env_init(self):
@@ -18,7 +19,6 @@ class TetrisTests(unittest.TestCase):
 
     def test_piece_file(self):
         env = Tetris()
-    
 
     def test_piecedrops(self):
         self._env.reset()
@@ -27,6 +27,16 @@ class TetrisTests(unittest.TestCase):
             obs, reward, done, info = self._env.step(action)
             if done: break
         self.assertEqual(done, True)
+
+    def test_non_cancel_move(self):
+        print("testing")
+        obs = self._env.reset()
+        action = self._env.action_space.sample()
+        o, r, d, i = self._env.step(action)
+        with self.assertRaises(AttributeError): 
+            self._env.board.cancel_last_move()
+        self._env.reset()
+
 
 class MelaxTests(unittest.TestCase):
     @classmethod

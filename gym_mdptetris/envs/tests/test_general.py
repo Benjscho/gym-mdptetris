@@ -6,52 +6,30 @@ import gym_mdptetris.envs.piece as piece
 import gym_mdptetris.envs.board as board
 import gym_mdptetris.envs.tetris as tetris
 
-S = """
-XX
-XX
-"""
 
-L = """
-X
-X
-XX
-"""
+class SpeedTest(unittest.TestCase):
 
-if __name__=="__main__":
-    p = piece.Piece(4,3,2,L)
-    for o in p.orientations:
-        print(o)
+    def test_speed(self):
 
-    board = board.Board()
-    print(board)
+        L = """X\nX\nXX"""
+        p = piece.Piece(4,3,2,L)
 
-    board.drop_piece(p.orientations[0], 1, False)
-    print(board)
-    board.drop_piece(p.orientations[1], 3, False)
-    print(board)
-    board.drop_piece(p.orientations[2], 5, False)
-    print(board)
-    board.drop_piece(p.orientations[3], 7, False)
-    print(board)
+        b = board.Board()
 
-    #print(p)
-    env = tetris.Tetris()
-    
-    env.reset()
-    env.render()
-    env.step((0,0))
-    env.render()
-    print(env._get_state())
-    env.reset()
-    env.render()
-    # Test how long it takes to make 100,000 steps
-    time = int(time.time())
-    env.seed(time)
+        b.drop_piece(p.orientations[0], 1, False)
+        b.drop_piece(p.orientations[1], 3, False)
+        b.drop_piece(p.orientations[2], 5, False)
+        b.drop_piece(p.orientations[3], 7, False)
 
-    setup = """
-import gym_mdptetris.envs.tetris as tetris
-import time
-env = tetris.Tetris()
-env.seed(time.time())
-"""
-    print(timeit.timeit(stmt="env.step((0, 0)) \nenv.reset()", setup=setup, number=100000))
+        env = tetris.Tetris()
+        
+        env.reset()
+        env.step((0,0))
+        env.reset()
+        # Test how long it takes to make 100,000 steps
+        t = int(time.time())
+        env.seed(t)
+
+        setup = """import gym_mdptetris.envs.tetris as tetris\nimport time\nenv = tetris.Tetris()\nenv.seed(time.time())"""
+        print(timeit.timeit(stmt="env.step((0, 0)) \nenv.reset()", setup=setup, number=10000))
+
