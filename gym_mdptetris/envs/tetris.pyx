@@ -187,8 +187,10 @@ class Tetris(CyTetris, Env):
                 flat_env=flat_env)
 
 class TetrisFlat(Tetris):
-    def __init__(self):
-        super(TetrisFlat, self).__init__(flat_env=True)
+    def __init__(self, board_height=20, board_width=10, piece_set='pieces4.dat',
+                allow_overflow=False, seed=12345):
+        super(TetrisFlat, self).__init__(flat_env=True, board_height=board_height, board_width=board_width,
+                                        piece_set=piece_set, allow_overflow=allow_overflow, seed=seed)
 
     def get_observation_space(self):
         return spaces.MultiBinary(self.board.extended_height * self.board_width)
