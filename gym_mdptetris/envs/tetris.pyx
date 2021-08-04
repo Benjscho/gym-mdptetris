@@ -132,7 +132,7 @@ cdef class CyTetris():
         integer array. For more details see the `Board` class. 
         """
         temp = np.copy(self.board.board)
-        temp[-4:, :] = False
+        temp[-self.max_piece_height:, :] = False
         temp[-self.pieces[self.current_piece].orientations[0].height:,:self.pieces[self.current_piece].orientations[0].width] = self.pieces[self.current_piece].orientations[0].shape
         if self.flat_env:
             return temp.flatten()

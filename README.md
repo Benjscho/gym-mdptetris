@@ -13,7 +13,7 @@ pip install git+https://github.com/Benjscho/gym-mdptetris
 ```
 
 ## State and Action Space
-The state space is discrete and is given by an array 
+The state space is discrete and is given by a numpy array containing the board with the piece arranged in the top rows above the board. The board size is set by the board width, and the board height, with extra rows equal to the maximum height of any of the pieces used. 
 
 
 ## Coverage tests
