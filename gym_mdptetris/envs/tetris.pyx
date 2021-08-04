@@ -66,6 +66,14 @@ cdef class CyTetris():
         self.action_space = spaces.MultiDiscrete([4, self.board.width])
 
     cdef clamp(self, int val, int min, int max):
+        """
+        Method to clamp values between a minimum and a maximum. Used for 
+        preventing overflow for piece orientation or column placement. 
+
+        :param val: value to be clamped
+        :param min: minimum value
+        :param max: maximum value
+        """
         if val < min:
             return min
         elif val > max:
@@ -74,7 +82,10 @@ cdef class CyTetris():
             return val
 
     cdef void new_piece(self):
-        # This delivers a dramatic improvement on speed
+        """
+        Select the next piece for the environment
+        """
+        # This delivers a dramatic improvement on speed over numpy random
         self.current_piece = random.choice(range(self.nb_pieces))
 
     cpdef step(self, action):
@@ -104,6 +115,9 @@ cdef class CyTetris():
         return self._get_state(), reward, done, {}
 
     cpdef get_dellacherie_state(self):
+        """
+        Get the state as the array of Dellacherie board features. 
+        """
         cdef np.ndarray res 
         cdef int i 
         res = np.empty((6), dtype='double')
@@ -122,14 +136,17 @@ cdef class CyTetris():
         return self._get_state()
 
     def get_observation_space(self):
-        spaces.MultiBinary([self.board.extended_height, self.board_width])
+        """
+        Get the observation space of the environment.
+        """
+        return spaces.MultiBinary([self.board.extended_height, self.board_width])
 
     cpdef _get_state(self):
         """
-        Returns the current state of the environment as 1D numpy array.
-        The state is represented by a concatenation of the current piece id
-        and the board state. The board state is the underlying 1D numpy 
-        integer array. For more details see the `Board` class. 
+        Returns the current state of the environment as 1D or 2D numpy array.
+        The state is represented by a superimposition of the current piece 
+        onto the board state. The board state is the underlying 2D numpy 
+        boolean array. For more details see the `Board` class. 
         """
         temp = np.copy(self.board.board)
         temp[-self.max_piece_height:, :] = False
@@ -140,6 +157,9 @@ cdef class CyTetris():
             return temp
 
     def render(self, mode='human'):
+        """
+        Render the current state of the environment. 
+        """
         print("Current piece:")
         print(self.pieces[self.current_piece])
         print(self.board)
