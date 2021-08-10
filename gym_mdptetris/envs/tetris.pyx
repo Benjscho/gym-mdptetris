@@ -233,8 +233,8 @@ cdef class CyMelaxTetris(CyTetris):
         int max_pieces
         int piece_drops
 
-    def __init__(self, max_pieces=1000, flat_env=True):
-        super(CyMelaxTetris, self).__init__(board_height=2, board_width=6, 
+    def __init__(self, max_pieces=1000, flat_env=True, board_height=2, board_width=6):
+        super(CyMelaxTetris, self).__init__(board_height=board_height, board_width=board_width, 
                 piece_set='pieces_melax.dat', allow_overflow=True, flat_env=flat_env)
         self.piece_drops = 0
         self.max_pieces = max_pieces
@@ -257,12 +257,12 @@ cdef class CyMelaxTetris(CyTetris):
         return self._get_state()
 
 class MelaxTetris(CyMelaxTetris, Env):
-    def __init__(self, max_pieces=1000, flat_env=False):
-        super(MelaxTetris, self).__init__(max_pieces=max_pieces, flat_env=flat_env)
+    def __init__(self, max_pieces=1000, flat_env=False, board_height=2, board_width=6):
+        super(MelaxTetris, self).__init__(max_pieces=max_pieces, flat_env=flat_env, board_height=2, board_width=6)
 
 class MelaxTetrisFlat(MelaxTetris):
-    def __init__(self):
-        super(MelaxTetrisFlat, self).__init__(flat_env=True)
+    def __init__(self, board_height=2, board_width=6):
+        super(MelaxTetrisFlat, self).__init__(flat_env=True, board_height=2, board_width=6)
 
     def get_observation_space(self):
         return spaces.MultiBinary(self.board.extended_height * self.board_width)
