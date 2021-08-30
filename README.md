@@ -1,6 +1,6 @@
-# gym-mdptetris
+# `gym-mdptetris`
 
-gym-mdptetris provides reinforcement learning environments for Tetris based
+Gym-MDPTetris provides reinforcement learning environments for Tetris based
 upon a piece drop implementation of the game. Each transition moves from a 
 state with a piece and a board state to a board state with the dropped piece
 and a new piece. 
@@ -8,10 +8,18 @@ and a new piece.
 ## Getting started
 ### Installation
 
-gym-mdptetris is installable via github:
+Gym-MDPTetris is installable via github:
 ```bash
 pip install git+https://github.com/Benjscho/gym-mdptetris
 ```
+
+Or you can clone the repository, `cd` into it, and install using pip:
+```bash
+git clone https://github.com/Benjscho/gym-mdptetris
+cd gym-mdptetris
+pip3 install -e .
+```
+
 ### Using the environments
 To initialise an environment you can use the gym system:
 ```python
