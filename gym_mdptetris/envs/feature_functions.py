@@ -133,8 +133,6 @@ def get_well_sums(board: board.Board) -> float:
     :return: The sum total of well cells on the board.
     """
     temp = np.ones((board.height + 1, board.width + 2), dtype='bool')
-    #temp[:,-1:] = False
-    #temp[:,:1] = False
     temp[:1] = False
     temp[1:,1:-1] = board.board[:board.height,]
     return (np.roll(temp, 1, axis=1) & np.roll(temp, -1, axis=1) & ~temp & ~np.roll(temp, -1, axis=0)).sum()
