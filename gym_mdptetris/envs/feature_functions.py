@@ -2,6 +2,13 @@ import numpy as np
 import gym_mdptetris.envs.board as board
 
 def get_dellacherie_funcs() -> list:
+    """
+    Method to return the list of Dellacherie feature functions for iteration 
+    over. Each of these functions takes a board object as input, and outputs
+    a float value of its specific feature. 
+
+    :return: List of Dellacherie feature functions. 
+    """
     return [get_landing_height, 
         get_eroded_cells, 
         get_row_transitions,
