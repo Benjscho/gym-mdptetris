@@ -21,13 +21,14 @@ pip3 install -e .
 ```
 
 ### Using the environments
-To initialise an environment you can use the gym system:
+To initialise an environment after installation you can use the OpenAI Gym
+registry method:
 ```python
 >>> import gym
 >>> env = gym.make('gym_mdptetris:mdptetris-v0')
 ```
 
-Or you can import the environment file directly:
+Or you can import the environment file and access the available classes:
 ```python
 >>> import gym_mdptetris.envs.tetris as tetris
 >>> env = tetris.Tetris()
